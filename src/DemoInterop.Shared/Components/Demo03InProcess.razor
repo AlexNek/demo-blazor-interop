@@ -1,0 +1,69 @@
+@inherits InteropDemoBase
+@using System.Diagnostics
+
+<DemoShell Number="3" Title="IJSInProcessObjectReference: synchronous interop"
+           Summary="While .NET runs in the browser it can call JavaScript synchronously: no task, no await, no round trip. Getting the reference is still awaited, because import is a browser operation. Every call after that one is not.">
+
+    <RunPanel Correct="true" Title="Synchronous Invoke, no await" NeedsWebAssembly="true"
+              Note="One awaited import, then a plain synchronous call that returns the string directly."
+              Snippet="@SyncCode" Run="CallSyncAsync" />
+
+    @if (RuntimeMode.IsWebAssembly)
+    {
+        <RunPanel Correct="false" Title="Synchronous call into slow JavaScript" NeedsWebAssembly="true"
+                  Note="The page has one thread. While .NET holds it inside a blocking call, nothing can paint — and the gap below is measured by a requestAnimationFrame loop in the browser, not estimated."
+                  Snippet="@BlockCode" Run="BlockAndMeasureAsync" />
+    }
+    else
+    {
+        <RunPanel Correct="false" Title="Ask the Server runtime for an in-process reference"
+                  Note="This is the crash the article warns about. The code compiles, the call is legal C#, and the failure only appears at run time — which is why you test the Server build and not only the WASM build."
+                  Snippet="@ServerCode" Run="AskServerForInProcessAsync" />
+    }
+
+</DemoShell>
+
+@code {
+    private const string SyncCode =
+        @"var module = await JS.InvokeAsync<IJSInProcessObjectReference>(""import"", path);
+var text = module.Invoke<string>(""getMessage"");        // no await";
+
+    private const string BlockCode =
+        @"module.Invoke<string>(""blockMainThread"", 1200);   // synchronous, and slow";
+
+    private const string ServerCode =
+        @"// legal C# on Blazor Server, and it compiles clean
+var module = await JS.InvokeAsync<IJSInProcessObjectReference>(""import"", path);";
+
+    private async Task<string> CallSyncAsync()
+    {
+        var module = await Modules.LoadInProcessAsync("module.js");
+        var text = module.Invoke<string>("getMessage");
+
+        return $"{text} — returned by Invoke<string>(), with no await on this call.";
+    }
+
+    private async Task<string> BlockAndMeasureAsync()
+    {
+        var module = await Modules.LoadInProcessAsync("module.js");
+        await module.InvokeVoidAsync("startFrameWatch");
+        await Task.Delay(400);
+
+        var started = Stopwatch.GetTimestamp();
+        module.Invoke<string>("blockMainThread", 1200);
+        var blockedMs = Stopwatch.GetElapsedTime(started).TotalMilliseconds;
+
+        var worstGapMs = await module.InvokeAsync<int>("readWorstFrameGap");
+        await module.InvokeVoidAsync("stopFrameWatch");
+
+        return $"the synchronous call held the thread for {blockedMs:0} ms; "
+             + $"the longest gap between two painted frames was {worstGapMs} ms. "
+             + "A page that is not blocked paints every ~16 ms.";
+    }
+
+    private async Task<string> AskServerForInProcessAsync()
+    {
+        var module = await Modules.LoadInProcessAsync("module.js");
+        return module.Invoke<string>("getMessage");
+    }
+}

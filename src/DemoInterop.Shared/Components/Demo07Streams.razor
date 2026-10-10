@@ -1,0 +1,65 @@
+@inherits InteropDemoBase
+
+<DemoShell Number="7" Title="Stream references: passing large data"
+           Summary="Move a payload as binary instead of materialising it as a JSON string on both sides. The two directions use different types and are not symmetric — that is the trap. Works on both hosting models.">
+
+    <RunPanel Correct="true" Title="JavaScript to .NET, with the size cap raised"
+              Note="OpenReadStreamAsync accepts a payload this large only because maxAllowedSize says so."
+              Snippet="@JsToDotNetCode" Run="ReadFromJavaScriptAsync" />
+
+    <RunPanel Correct="true" Title=".NET to JavaScript, as a DotNetStreamReference"
+              Note="Transmission starts as soon as you pass the reference into the call, even if the JavaScript never reads it. leaveOpen: false means the stream is released for you."
+              Snippet="@DotNetToJsCode" Run="SendToJavaScriptAsync" />
+
+    <RunPanel Correct="false" Title="Same payload, forget maxAllowedSize"
+              Note="The default cap is 512,000 bytes. Nothing about this call looks wrong at compile time."
+              Snippet="@DefaultCapCode" Run="ReadWithDefaultCapAsync" />
+
+</DemoShell>
+
+@code {
+    private const string JsToDotNetCode =
+        @"// js: export function bigBytes() { return new Uint8Array(1_000_000); }
+var reference = await module.InvokeAsync<IJSStreamReference>(""bigBytes"");
+using var source = await reference.OpenReadStreamAsync(maxAllowedSize: 10_000_000);";
+
+    private const string DotNetToJsCode =
+        @"using var streamRef = new DotNetStreamReference(payload, leaveOpen: false);
+var text = await module.InvokeAsync<string>(""receiveStream"", streamRef);";
+
+    private const string DefaultCapCode =
+        @"using var source = await reference.OpenReadStreamAsync();   // default cap: 512,000 bytes";
+
+    private async Task<string> ReadFromJavaScriptAsync()
+    {
+        var streams = await Modules.LoadAsync("streams.js");
+        var reference = await streams.InvokeAsync<IJSStreamReference>("bigBytes");
+
+        using var target = new MemoryStream();
+        using var source = await reference.OpenReadStreamAsync(maxAllowedSize: 10_000_000);
+        await source.CopyToAsync(target);
+
+        return $"{target.Length} bytes arrived as binary, without a Base64 string on either side.";
+    }
+
+    private async Task<string> SendToJavaScriptAsync()
+    {
+        var streams = await Modules.LoadAsync("streams.js");
+        using var payload = new MemoryStream(new byte[250_000]);
+        using var reference = new DotNetStreamReference(payload, leaveOpen: false);
+
+        return await streams.InvokeAsync<string>("receiveStream", reference);
+    }
+
+    private async Task<string> ReadWithDefaultCapAsync()
+    {
+        var streams = await Modules.LoadAsync("streams.js");
+        var reference = await streams.InvokeAsync<IJSStreamReference>("bigBytes");
+
+        using var target = new MemoryStream();
+        using var source = await reference.OpenReadStreamAsync();
+        await source.CopyToAsync(target);
+
+        return $"{target.Length} bytes read with the default cap — the call should have failed first.";
+    }
+}

@@ -1,0 +1,27 @@
+<div class="demo-gallery">
+    <header class="gallery-intro">
+        <h1>Blazor JavaScript interop: the main mechanisms, both hosting models</h1>
+        <p>
+            You are reading this page in
+            <span class="host-chip">@RuntimeMode.Name</span>.
+            Open the same page in the other app and compare what changes.
+        </p>
+        <p>
+            Each section has a green <strong>✓ correct usage</strong> panel and a red
+            <strong>✗ wrong usage</strong> panel. Press <em>Run it</em> and the panel shows what really
+            happened. A wrong panel is not an illustration: it makes the mistake, catches what the runtime
+            threw, and prints the exception type and message. Where a mechanism only exists in WebAssembly,
+            the ✓ panel is disabled on Blazor Server and the ✗ panel attempts the call anyway, so you can
+            read the failure instead of taking it on trust.
+        </p>
+    </header>
+
+    <Demo01Globals />
+    <Demo02Modules />
+    <Demo03InProcess />
+    <Demo04Callbacks />
+    <Demo05JsExport />
+    <Demo06JSImport />
+    <Demo07Streams />
+    <Demo08Constructors />
+</div>

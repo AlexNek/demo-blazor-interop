@@ -1,0 +1,195 @@
+/* Served from the Razor class library at ./_content/DemoInterop.Shared/css/demo.css
+   Both the WebAssembly and the Server app link this one file, so the two hosts render
+   the same page and the only difference between them is what the runtime actually does. */
+
+.demo-gallery {
+    max-width: 62rem;
+    margin: 0 auto;
+    padding: 1.5rem 1.25rem 4rem;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    line-height: 1.5;
+}
+
+.demo-gallery > .gallery-intro {
+    border-bottom: 2px solid #d8dee9;
+    margin-bottom: 2rem;
+    padding-bottom: 1.25rem;
+}
+
+.gallery-intro h1 {
+    font-size: 1.6rem;
+    margin: 0 0 .5rem;
+}
+
+.gallery-intro p {
+    margin: .4rem 0;
+    max-width: 70ch;
+}
+
+.host-chip {
+    display: inline-block;
+    font-weight: 600;
+    font-size: .85rem;
+    letter-spacing: .02em;
+    padding: .2rem .6rem;
+    border-radius: 999px;
+    background: #eef2ff;
+    color: #3730a3;
+    border: 1px solid #c7d2fe;
+}
+
+.demo {
+    border-top: 1px solid #d8dee9;
+    margin: 0 0 1.5rem;
+    padding-top: 1.25rem;
+}
+
+.demo > h2 {
+    font-size: 1.15rem;
+    margin: 0 0 .35rem;
+}
+
+.demo-summary {
+    margin: 0 0 .6rem;
+    max-width: 78ch;
+}
+
+.demo-support {
+    font-size: .88rem;
+    color: #4b5563;
+    margin: 0 0 .8rem;
+}
+
+.banner {
+    background: #fff7e6;
+    border: 1px solid #f0c674;
+    border-left-width: 4px;
+    border-radius: 4px;
+    color: #7a4f01;
+    font-size: .9rem;
+    margin: 0 0 1rem;
+    padding: .6rem .8rem;
+    max-width: 78ch;
+}
+
+.panels {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr));
+    align-items: start;
+}
+
+.panel {
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: .8rem .9rem 1rem;
+}
+
+.panel-ok {
+    border-top: 3px solid #1b7a4b;
+}
+
+.panel-wrong {
+    border-top: 3px solid #b42318;
+}
+
+.panel-head {
+    display: flex;
+    gap: .5rem;
+    align-items: baseline;
+    flex-wrap: wrap;
+    margin-bottom: .35rem;
+}
+
+.panel-tag {
+    font-size: .74rem;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    padding: .1rem .4rem;
+    border-radius: 3px;
+}
+
+.panel-ok .panel-tag {
+    background: #e7f6ee;
+    color: #14603c;
+}
+
+.panel-wrong .panel-tag {
+    background: #fdecea;
+    color: #8f1d13;
+}
+
+.panel-title {
+    font-weight: 600;
+    font-size: .95rem;
+}
+
+.panel-note {
+    font-size: .85rem;
+    color: #4b5563;
+    margin: 0 0 .6rem;
+}
+
+.panel-code {
+    background: #f6f8fa;
+    border: 1px solid #e3e8ee;
+    border-radius: 4px;
+    color: #24292f;
+    font-family: "Cascadia Mono", Consolas, monospace;
+    font-size: .8rem;
+    margin: 0 0 .7rem;
+    overflow-x: auto;
+    padding: .5rem .6rem;
+    white-space: pre-wrap;
+}
+
+.panel-run {
+    background: #1f2937;
+    border: 0;
+    border-radius: 4px;
+    color: #fff;
+    cursor: pointer;
+    font-size: .85rem;
+    font-weight: 600;
+    padding: .4rem .8rem;
+}
+
+.panel-run:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+}
+
+.panel-out {
+    border-radius: 4px;
+    font-family: "Cascadia Mono", Consolas, monospace;
+    font-size: .82rem;
+    margin: .7rem 0 0;
+    overflow-x: auto;
+    padding: .6rem .7rem;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.out-ok {
+    background: #f0faf4;
+    border: 1px solid #a5d6bb;
+    color: #14603c;
+}
+
+.out-fail {
+    background: #fdecea;
+    border: 2px solid #b42318;
+    color: #721c13;
+    font-weight: 600;
+}
+
+.panel-unavailable {
+    background: #f3f4f6;
+    border: 1px dashed #9ca3af;
+    border-radius: 4px;
+    color: #4b5563;
+    font-size: .85rem;
+    margin: .7rem 0 0;
+    padding: .5rem .7rem;
+}

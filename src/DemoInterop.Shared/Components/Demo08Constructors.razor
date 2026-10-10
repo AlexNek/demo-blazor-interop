@@ -1,0 +1,64 @@
+@inherits InteropDemoBase
+
+<DemoShell Number="8" Title="The .NET 10 additions: constructors and properties"
+           Summary="Invoke a constructor or read and write a property by name through the runtime you already use. This deletes the pass-through shims a wrapper used to need. Works on both hosting models.">
+
+    <RunPanel Correct="true" Title="new, through C#"
+              Note="A dotted name resolves for you, which is what makes a namespace such as BABYLON.Vector3 reachable without a shim in between."
+              Snippet="@ConstructorCode" Run="BuildObjectAsync" />
+
+    <RunPanel Correct="true" Title="Read and write a property, no function"
+              Note="Assigning to a name that does not exist yet creates it. On earlier versions this needed a JavaScript setter."
+              Snippet="@PropertyCode" Run="ChangePropertyAsync" />
+
+    <RunPanel Correct="false" Title="Misspell the constructor name"
+              Note="The name is still a string. Nothing checks it, and bypassing the shim also bypasses whatever normalising the shim used to do."
+              Snippet="@TypoConstructorCode" Run="BuildObjectFromTypoAsync" />
+
+</DemoShell>
+
+@code {
+    private const string ConstructorCode =
+        @"var point = await JS.InvokeConstructorAsync(""vendor.Point"", 3, 4);
+var x = await point.GetValueAsync<int>(""x"");
+var hypot = await point.InvokeAsync<int>(""hypot"");";
+
+    private const string PropertyCode =
+        @"await JS.SetValueAsync(""demoSettings.count"", 20);
+var count = await JS.GetValueAsync<int>(""demoSettings.count"");
+await JS.SetValueAsync(""demoSettings.created"", 30);   // creates the property";
+
+    private const string TypoConstructorCode =
+        @"var point = await JS.InvokeConstructorAsync(""vendor.Point2"", 3, 4);";
+
+    private async Task<string> BuildObjectAsync()
+    {
+        await Modules.LoadAsync("shapes.js");
+
+        var point = await JS.InvokeConstructorAsync("vendor.Point", 3, 4);
+        var x = await point.GetValueAsync<int>("x");
+        var hypot = await point.InvokeAsync<int>("hypot");
+
+        return $"C# ran the constructor directly: x = {x}, hypot() = {hypot}. No createPoint wrapper was needed.";
+    }
+
+    private async Task<string> ChangePropertyAsync()
+    {
+        await Modules.LoadAsync("shapes.js");
+
+        await JS.SetValueAsync("demoSettings.count", 20);
+        var count = await JS.GetValueAsync<int>("demoSettings.count");
+        await JS.SetValueAsync("demoSettings.created", 30);
+        var created = await JS.GetValueAsync<int>("demoSettings.created");
+
+        return $"demoSettings.count = {count}, demoSettings.created = {created} — the second one did not exist before this call.";
+    }
+
+    private async Task<string> BuildObjectFromTypoAsync()
+    {
+        await Modules.LoadAsync("shapes.js");
+        var point = await JS.InvokeConstructorAsync("vendor.Point2", 3, 4);
+
+        return $"UNEXPECTED: built {point}";
+    }
+}

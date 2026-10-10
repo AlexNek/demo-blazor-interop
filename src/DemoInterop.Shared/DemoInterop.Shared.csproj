@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <PropertyGroup>
+    <!-- [JSImport] / [JSExport] in the WebAssembly-only demos need this. -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Declares browser as a supported platform for this assembly, the same item the
+         Blazor WebAssembly SDK adds on its own. Note: the Razor-generated call sites in
+         this demo produced no CA1416 warnings either way, so do not count on the
+         analyzer to tell you a call is WebAssembly-only — run the Server build. -->
+    <SupportedPlatform Include="browser" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.12" />
+  </ItemGroup>
+
+</Project>

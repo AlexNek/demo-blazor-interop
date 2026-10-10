@@ -1,0 +1,88 @@
+<div class="panel @(Correct ? "panel-ok" : "panel-wrong")">
+    <div class="panel-head">
+        <span class="panel-tag">@(Correct ? "✓ correct usage" : "✗ wrong usage")</span>
+        <span class="panel-title">@Title</span>
+    </div>
+
+    @if (Note is not null)
+    {
+        <p class="panel-note">@Note</p>
+    }
+
+    <pre class="panel-code">@Snippet</pre>
+
+    @if (Run is not null)
+    {
+        @if (NeedsWebAssembly && !RuntimeMode.IsWebAssembly)
+        {
+            <p class="panel-unavailable">Cannot run here: this API does not exist in Blazor Server.</p>
+        }
+        else
+        {
+            <button class="panel-run" disabled="@_busy" @onclick="RunAsync">
+                @(_busy ? "running…" : "Run it")
+            </button>
+        }
+    }
+
+    @if (_output is not null)
+    {
+        <pre class="panel-out @(_failed ? "out-fail" : "out-ok")">@_output</pre>
+    }
+</div>
+
+@code {
+    /// <summary>What the panel demonstrates, shown next to the ✓ / ✗ tag.</summary>
+    [Parameter, EditorRequired]
+    public string Title { get; set; } = string.Empty;
+
+    /// <summary>true renders the green ✓ panel, false the red ✗ panel.</summary>
+    [Parameter]
+    public bool Correct { get; set; }
+
+    [Parameter]
+    public string? Note { get; set; }
+
+    /// <summary>The C# or JavaScript the panel actually runs.</summary>
+    [Parameter]
+    public string Snippet { get; set; } = string.Empty;
+
+    /// <summary>The call itself. Thrown exceptions are displayed, not swallowed.</summary>
+    [Parameter]
+    public Func<Task<string>>? Run { get; set; }
+
+    /// <summary>Hides the button on Blazor Server for APIs that only exist in WebAssembly.</summary>
+    [Parameter]
+    public bool NeedsWebAssembly { get; set; }
+
+    private bool _busy;
+    private bool _failed;
+    private string? _output;
+
+    private async Task RunAsync()
+    {
+        if (Run is null)
+        {
+            return;
+        }
+
+        _busy = true;
+        _failed = false;
+        _output = null;
+        StateHasChanged();
+
+        try
+        {
+            _output = await Run();
+        }
+        catch (Exception exception)
+        {
+            _failed = true;
+            _output = ErrorText.From(exception);
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+}

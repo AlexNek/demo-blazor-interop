@@ -1,0 +1,36 @@
+<section class="demo" id="@($"demo-{Number}")">
+    <h2>@Number. @Title</h2>
+    <p class="demo-summary">@Summary</p>
+    <p class="demo-support">
+        Available in: <strong>@(WasmOnly ? "Blazor WebAssembly only" : "Blazor Server and Blazor WebAssembly")</strong>
+    </p>
+
+    @if (WasmOnly && !RuntimeMode.IsWebAssembly)
+    {
+        <p class="banner">
+            This mechanism does not exist on Blazor Server. The ✓ panel is disabled, and the ✗ panel
+            attempts the call anyway, so you can read the exception the runtime really throws rather than
+            take it on trust.
+        </p>
+    }
+
+    <div class="panels">@ChildContent</div>
+</section>
+
+@code {
+    [Parameter, EditorRequired]
+    public int Number { get; set; }
+
+    [Parameter, EditorRequired]
+    public string Title { get; set; } = string.Empty;
+
+    [Parameter, EditorRequired]
+    public string Summary { get; set; } = string.Empty;
+
+    /// <summary>True for the three mechanisms that only exist while .NET runs in the browser.</summary>
+    [Parameter]
+    public bool WasmOnly { get; set; }
+
+    [Parameter, EditorRequired]
+    public RenderFragment? ChildContent { get; set; }
+}

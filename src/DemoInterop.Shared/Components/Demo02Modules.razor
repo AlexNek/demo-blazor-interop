@@ -1,0 +1,37 @@
+@inherits InteropDemoBase
+
+<DemoShell Number="2" Title="ES module imports: the modern replacement"
+           Summary="Import an ES module and reach its exports through the module reference. Scoped instead of global, composable, and the module keeps private state between calls. This is the production default on both hosting models.">
+
+    <RunPanel Correct="true" Title="Call an export through the module reference"
+              Note="The call number in the result is private module state. The reference is disposed with the component."
+              Snippet="@ModuleCode" Run="CallThroughModuleAsync" />
+
+    <RunPanel Correct="false" Title="Call that same export through the root runtime"
+              Note="Exports are reachable only through the module reference. The root runtime resolves the name against the global scope, where getMessage does not exist."
+              Snippet="@RootCode" Run="CallThroughRootAsync" />
+
+</DemoShell>
+
+@code {
+    private const string ModuleCode =
+        @"var module = await JS.InvokeAsync<IJSObjectReference>(""import"",
+        ""./_content/DemoInterop.Shared/js/module.js"");
+var text = await module.InvokeAsync<string>(""getMessage"");";
+
+    private const string RootCode =
+        @"// the export exists, but not on window
+var text = await JS.InvokeAsync<string>(""getMessage"");";
+
+    private async Task<string> CallThroughModuleAsync()
+    {
+        var module = await Modules.LoadAsync("module.js");
+        return await module.InvokeAsync<string>("getMessage");
+    }
+
+    private async Task<string> CallThroughRootAsync()
+    {
+        await Modules.LoadAsync("module.js");
+        return await JS.InvokeAsync<string>("getMessage");
+    }
+}

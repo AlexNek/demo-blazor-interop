@@ -1,0 +1,48 @@
+@inherits InteropDemoBase
+
+<DemoShell Number="5" Title="[JSExport]: exposing a .NET method to JavaScript"
+           Summary="The source generator publishes a static .NET method as a JavaScript function. Arguments arrive as real .NET types instead of JSON, and a wrong signature is a build error. WebAssembly only.">
+
+    <RunPanel Correct="true" Title="Reach the export through the runtime instance" NeedsWebAssembly="true"
+              Note="No IJSRuntime round trip: JavaScript calls the generated function directly. Money would want decimal, but [JSExport] rejects it at build time with error SYSLIB1072, so this signature is double."
+              Snippet="@ExportCode" Run="CallExportAsync" />
+
+    @if (RuntimeMode.IsWebAssembly)
+    {
+        <RunPanel Correct="false" Title="Reach it through a type name that has changed" NeedsWebAssembly="true"
+                  Note="The path contains your assembly name and the full type name. Nothing on the .NET side checks that string, so a rename breaks JavaScript silently."
+                  Snippet="@RenamedCode" Run="CallMissingTypeAsync" />
+    }
+    else
+    {
+        <RunPanel Correct="false" Title="Run the same JavaScript on Blazor Server"
+                  Note="There is no .NET runtime inside the browser tab, so the entry point the JavaScript needs does not exist here. This runs the identical call the ✓ panel would make, and it is the failure a Server deployment of the same code produces."
+                  Snippet="@ServerCode" Run="CallExportAsync" />
+    }
+
+</DemoShell>
+
+@code {
+    private const string ExportCode =
+        @"// C#: [JSExport] internal static double ApplyDiscount(double price, int percent)
+const exports = await getAssemblyExports(""DemoInterop.Shared.dll"");
+exports.DemoInterop.Shared.Interop.Pricing.ApplyDiscount(price, percent);";
+
+    private const string RenamedCode =
+        @"exports.DemoInterop.Shared.Interop.PricingRenamed.ApplyDiscount(price, percent);";
+
+    private const string ServerCode =
+        @"const dotnetRuntime = globalThis.getDotnetRuntime(0);   // does not exist on Server";
+
+    private async Task<string> CallExportAsync()
+    {
+        var exports = await Modules.LoadAsync("exports.js");
+        return await exports.InvokeAsync<string>("callJsExport", 200d, 15);
+    }
+
+    private async Task<string> CallMissingTypeAsync()
+    {
+        var exports = await Modules.LoadAsync("exports.js");
+        return await exports.InvokeAsync<string>("callMissingType", 200d, 15);
+    }
+}

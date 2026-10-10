@@ -1,0 +1,66 @@
+@inherits InteropDemoBase
+@using System.Runtime.InteropServices.JavaScript
+
+<DemoShell Number="6" Title="[JSImport]: calling JavaScript through a checked signature"
+           Summary="A static partial method plus an attribute, and the generator emits the call. Types and arity are checked at build time and arguments are marshalled instead of serialised. WebAssembly only.">
+
+    <RunPanel Correct="true" Title="Call a module export the attribute points at" NeedsWebAssembly="true"
+              Note="The module must be loaded first, and its registered name has to match the one in the attribute. The call itself is plain synchronous C#."
+              Snippet="@ImportCode" Run="CallImportAsync" />
+
+    @if (RuntimeMode.IsWebAssembly)
+    {
+        <RunPanel Correct="false" Title="Point the attribute at an export that does not exist" NeedsWebAssembly="true"
+                  Note="The generator checks your .NET signature, never the JavaScript name. This compiles with no warning and fails only when the method is called."
+                  Snippet="@MissingCode" Run="CallMissingAsync" />
+    }
+    else
+    {
+        <RunPanel Correct="false" Title="Run the same C# on Blazor Server"
+                  Note="This is the identical call the ✓ panel makes. The code compiled for months on a target that cannot run it."
+                  Snippet="@ServerCode" Run="CallImportAsync" />
+    }
+
+</DemoShell>
+
+@code {
+    private const string ImportCode =
+        @"// The URL is built from the app's base URI, not from ""/"", so it still resolves when
+// the app is hosted in a subdirectory. See DemoAssets.JsAbsolute.
+await JSHost.ImportAsync(""demo-native"", $""{Navigation.BaseUri}_content/DemoInterop.Shared/js/native.js"");
+var text = NativeImports.GetWelcomeMessage();
+
+// C#: [JSImport(""getMessage"", ""demo-native"")] internal static partial string GetWelcomeMessage();";
+
+    private const string MissingCode =
+        @"[JSImport(""noSuchExport"", ""demo-native"")] internal static partial string MissingFunction();
+var text = NativeImports.MissingFunction();";
+
+    private const string ServerCode =
+        @"await JSHost.ImportAsync(""demo-native"", $""{Navigation.BaseUri}_content/DemoInterop.Shared/js/native.js"");";
+
+    private bool _moduleLoaded;
+
+    private async Task<string> CallImportAsync()
+    {
+        await EnsureModuleAsync();
+        return NativeImports.GetWelcomeMessage();
+    }
+
+    private async Task<string> CallMissingAsync()
+    {
+        await EnsureModuleAsync();
+        return NativeImports.MissingFunction();
+    }
+
+    private async Task EnsureModuleAsync()
+    {
+        if (_moduleLoaded)
+        {
+            return;
+        }
+
+        await JSHost.ImportAsync(DemoAssets.NativeModuleName, DemoAssets.JsAbsolute(Navigation.BaseUri, "native.js"));
+        _moduleLoaded = true;
+    }
+}

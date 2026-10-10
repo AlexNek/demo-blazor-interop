@@ -1,0 +1,36 @@
+@inherits InteropDemoBase
+
+<DemoShell Number="1" Title="IJSRuntime: the classic string-based call"
+           Summary="Call a JavaScript function by its string name through the root runtime. Arguments travel as JSON. No setup, and it works in both hosting models.">
+
+    <RunPanel Correct="true" Title="One call into a window global"
+              Note="This is the simplest thing that works, and the right choice for a call you will not make again."
+              Snippet="@GlobalCode" Run="CallGlobalAsync" />
+
+    <RunPanel Correct="false" Title="Typo the function name"
+              Note="The compiler cannot check a string. The mistake only surfaces when the call runs, on the user's machine."
+              Snippet="@TypoCode" Run="CallTypoAsync" />
+
+</DemoShell>
+
+@code {
+    private const string GlobalCode =
+        @"// globals.js declares window.demoGreeter
+var text = await JS.InvokeAsync<string>(""demoGreeter"", ""Blazor"");";
+
+    private const string TypoCode =
+        @"// same call, one letter wrong in a string nobody can check
+var text = await JS.InvokeAsync<string>(""demoGreeterTwo"", ""Blazor"");";
+
+    private async Task<string> CallGlobalAsync()
+    {
+        await Modules.LoadAsync("globals.js");
+        return await JS.InvokeAsync<string>("demoGreeter", "Blazor");
+    }
+
+    private async Task<string> CallTypoAsync()
+    {
+        await Modules.LoadAsync("globals.js");
+        return await JS.InvokeAsync<string>("demoGreeterTwo", "Blazor");
+    }
+}

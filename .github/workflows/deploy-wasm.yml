@@ -1,0 +1,90 @@
+name: Deploy WebAssembly demo
+
+# Only the Blazor WebAssembly host can go to Pages. The Server host needs an ASP.NET Core
+# process holding a SignalR circuit per client, which static hosting cannot provide, so it is
+# deliberately not built here.
+#
+# A Pages project site is served from https://<user>.github.io/<repo>/, but the published
+# index.html declares <base href="/" />. Everything else in it is already relative, so
+# rewriting that one tag is the entire base-path fix. Do not reach for
+# -p:StaticWebAssetBasePath here: it does not touch <base href>, it relocates the publish
+# output into a nested wwwroot\<path>\ folder, which is the wrong shape for Pages.
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# A new push replaces a deployment still in flight instead of queueing behind it.
+concurrency:
+  group: github-pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Publish the WebAssembly host
+        run: dotnet publish src/DemoInterop.WebAssembly --configuration Release --output _publish
+
+      - name: Point the base href at the project-site subdirectory
+        shell: pwsh
+        run: |
+          # The run working directory is already the checked-out repository root.
+          $index = Join-Path '_publish' 'wwwroot/index.html'
+          $base  = '/${{ github.event.repository.name }}/'
+          $html  = Get-Content $index -Raw
+
+          $updated = [regex]::Replace($html, '<base\s+href="[^"]*"\s*/?>', "<base href=`"$base`" />")
+
+          # Fail the build rather than publish a site that boots to a blank page. Check that the
+          # result carries the intended tag rather than checking that the text changed - a step
+          # re-run over an already-correct file changes nothing and would then look like a failure.
+          if ($updated -notmatch ('<base\s+href="' + [regex]::Escape($base) + '"\s*/>')) {
+            throw "no <base href=`"$base`" /> in $index after the substitution - the step did not apply"
+          }
+          $updated | Set-Content -NoNewline $index
+
+          # Publish also writes precompressed copies of the old index.html. A host that negotiates
+          # one of them would serve the pre-substitution <base href="/" /> and undo the fix above,
+          # so they are removed rather than regenerated - index.html is a few kilobytes.
+          Remove-Item ($index + '.br'), ($index + '.gz') -Force -ErrorAction SilentlyContinue
+
+          # Pages has no SPA fallback, so a deep link would 404 instead of booting Blazor.
+          Copy-Item $index (Join-Path (Split-Path $index) '404.html') -Force
+
+          # Keeps the _framework and _content folders from being treated as Jekyll
+          # underscore-ignored files if this site is ever built from a branch instead.
+          New-Item -ItemType File -Force -Path (Join-Path (Split-Path $index) '.nojekyll') | Out-Null
+
+          Write-Output "base href is now: $([regex]::Match($updated, '<base[^>]*>').Value)"
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: _publish/wwwroot
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5

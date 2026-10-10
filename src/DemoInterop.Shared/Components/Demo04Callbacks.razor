@@ -1,0 +1,74 @@
+@inherits InteropDemoBase
+
+<DemoShell Number="4" Title="DotNetObjectReference: JavaScript calling back into C#"
+           Summary="The only supported way for a JavaScript event to run a C# method. The handle pins the C# object in memory, so whoever created it has to release it.">
+
+    <RunPanel Correct="true" Title="Call the method by its registered name"
+              Note="Both sides agree on one string: [JSInvokable] with no argument, and invokeMethodAsync('OnAnimationEnd')."
+              Snippet="@OkCode" Run="CallByMethodNameAsync" />
+
+    <RunPanel Correct="false" Title="Give the method a custom identifier, then call its C# name"
+              Note="An identifier in [JSInvokable] replaces the method name instead of aliasing it. Renaming the C# method is then a silent breaking change to JavaScript you cannot compile-check."
+              Snippet="@IdentifierCode" Run="CallCustomIdentifierByNameAsync" />
+
+    <RunPanel Correct="false" Title="Dispose the handle in JavaScript, then call it again"
+              Note="The JS side holds the only reference and can dispose it at any moment. Read the exception type carefully — it is not what most people expect."
+              Snippet="@DisposedCode" Run="CallAfterDisposeAsync" />
+
+</DemoShell>
+
+@code {
+    private const string OkCode =
+        @"_callbackRef = DotNetObjectReference.Create(new AnimationCallback());
+await callbacks.InvokeAsync<string>(""callByMethodName"", _callbackRef);";
+
+    private const string IdentifierCode =
+        @"// C# side: [JSInvokable(""Demo.Shared"")] public void OnAnimationEndWithCustomIdentifier()
+// JS side:  await dotNetRef.invokeMethodAsync(""OnAnimationEndWithCustomIdentifier"");";
+
+    private const string DisposedCode =
+        @"// JS side: dotNetRef.dispose();  then  await dotNetRef.invokeMethodAsync(""OnAnimationEnd"");";
+
+    private DotNetObjectReference<AnimationCallback>? _callbackRef;
+
+    private async Task<string> CallByMethodNameAsync()
+    {
+        var callbacks = await Modules.LoadAsync("callbacks.js");
+        var callback = ResetCallback();
+
+        var result = await callbacks.InvokeAsync<string>("callByMethodName", _callbackRef);
+        return $"{result}. HitCount in C# is now {callback.HitCount}.";
+    }
+
+    private async Task<string> CallCustomIdentifierByNameAsync()
+    {
+        var callbacks = await Modules.LoadAsync("callbacks.js");
+        ResetCallback();
+
+        return await callbacks.InvokeAsync<string>("callByMethodNameAfterCustomIdentifier", _callbackRef);
+    }
+
+    private async Task<string> CallAfterDisposeAsync()
+    {
+        var callbacks = await Modules.LoadAsync("callbacks.js");
+
+        // a throwaway reference: the JavaScript disposes it before calling
+        using var throwaway = DotNetObjectReference.Create(new AnimationCallback());
+        return await callbacks.InvokeAsync<string>("disposeThenCall", throwaway);
+    }
+
+    private AnimationCallback ResetCallback()
+    {
+        _callbackRef?.Dispose();
+        var callback = new AnimationCallback();
+        _callbackRef = DotNetObjectReference.Create(callback);
+        return callback;
+    }
+
+    public override async ValueTask DisposeAsync()
+    {
+        // releasing the handle stops C# being reachable from JavaScript
+        _callbackRef?.Dispose();
+        await base.DisposeAsync();
+    }
+}
