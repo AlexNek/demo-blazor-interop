@@ -1,5 +1,7 @@
 # demo-blazor-interop
 
+**Live demo (WebAssembly host, on GitHub Pages): <https://alexnek.github.io/demo-blazor-interop/>**
+
 The companion code for a blog post on JavaScript interop in .NET 10 Blazor. It is a teaching
 demo, not a library: eight sections, one per interop mechanism, and each section contains a
 green **✓ correct usage** panel and one or more red **✗ wrong usage** panels.
@@ -52,6 +54,10 @@ fingerprinted one, so `import("./_content/DemoInterop.Shared/js/module.js")` sti
 `.github/workflows/deploy-wasm.yml` publishes `DemoInterop.WebAssembly` and uploads the result as a
 Pages artifact. The Server host is deliberately not deployed — it needs an ASP.NET Core process
 holding a SignalR circuit per client, which static hosting cannot provide.
+
+The published result is <https://alexnek.github.io/demo-blazor-interop/>. Note what that one window
+cannot show you: the ✗ panels in sections 3, 5 and 6 exist to display what Blazor *Server* throws, and
+the Server host is not deployed, so run it locally to see the other half of the page.
 
 The trap is the base path. A project site is served from `https://<user>.github.io/<repo>/`, while a
 fresh `dotnet publish` writes `<base href="/" />` into `index.html`. Everything else in that file is
