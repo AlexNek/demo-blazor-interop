@@ -65,6 +65,17 @@
     color: white;
 }
 
+/* The mechanism entries are rendered by the shared MechanismMenu component and styled by
+   .side-* rules in _content/DemoInterop.Shared/css/demo.css, so this file stays with the host's
+   own chrome: brand row, toggler and the Home item. */
+
+/* 1.5rem rather than the component's default 1rem: the Home row above is bootstrap's, and its text
+   sits 1rem of px-3 plus 1rem of nav-link padding in, so this lines the number badges up with it.
+   Custom properties inherit down the tree, which is why no ::deep selector is needed here. */
+.nav-scrollable {
+    --side-x: 1.5rem;
+}
+
 @media (min-width: 641px) {
     .navbar-toggler {
         display: none;

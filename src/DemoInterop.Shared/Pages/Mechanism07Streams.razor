@@ -1,0 +1,116 @@
+@page "/mechanism/7-streams"
+
+<PageTitle>7. Stream references — JS interop demos</PageTitle>
+
+<div class="mechanism-page">
+    <MechanismNav />
+
+    <header class="mech-head">
+        <p class="mech-kicker">
+            Mechanism 7 of @Mechanisms.All.Count · you are reading this in
+            <span class="host-chip">@RuntimeMode.Name</span> — the same page in
+            <CounterpartLink />
+        </p>
+        <h1>Stream references: passing large data</h1>
+        <p class="mech-lede">
+            Move a payload as binary instead of materialising it as a JSON string on both sides. The
+            two directions use different types and are not symmetric — that asymmetry is the trap.
+        </p>
+        <p class="demo-support">
+            Available in: <strong>@Mechanisms.Availability(7)</strong>
+        </p>
+    </header>
+
+    <section class="mech-block">
+        <h2>Two directions, two different APIs</h2>
+        <p>
+            <strong>JavaScript to .NET.</strong> The JavaScript function returns the bytes, you ask for
+            them as an <code>IJSStreamReference</code>, and then you open it:
+            <code>OpenReadStreamAsync(maxAllowedSize: …)</code>. The data is the return value, and the
+            size cap is a parameter on <em>your</em> side.
+        </p>
+        <p>
+            <strong>.NET to JavaScript.</strong> You construct a <code>DotNetStreamReference</code> and
+            pass it as an <em>argument</em>; the JavaScript side chooses the shape it wants,
+            <code>await streamRef.arrayBuffer()</code> or <code>await streamRef.stream()</code>. Here
+            there is no size cap to raise, because you own the stream.
+        </p>
+        <p>
+            Two behaviours that surprise people: transmission starts as soon as you pass the reference
+            into an interop call, even if the JavaScript never reads it; and disposal is usually not
+            your problem, because <code>leaveOpen: false</code> releases the underlying stream for you.
+            Flip it to <code>true</code> and the stream becomes your responsibility, including the risk
+            of disposing it mid-transmission.
+        </p>
+    </section>
+
+    <section class="mech-block">
+        <h2>What the panels print in @RuntimeMode.Name</h2>
+        <p class="mech-out-label">✓ JavaScript to .NET, with the size cap raised</p>
+        <pre class="mech-out">1000000 bytes arrived as binary, without a Base64 string on either side.</pre>
+
+        <p class="mech-out-label">✓ .NET to JavaScript, as a DotNetStreamReference</p>
+        <pre class="mech-out">JavaScript received 250000 bytes from .NET</pre>
+
+        <p class="mech-out-label">✗ Same payload, forget maxAllowedSize</p>
+        @if (RuntimeMode.IsWebAssembly)
+        {
+            <pre class="mech-out mech-out-fail">ArgumentOutOfRangeException: The incoming data stream of length 1000000
+exceeds the maximum allowed length 512000. Arg_ParamName_Name, maxAllowedSize</pre>
+        }
+        else
+        {
+            <pre class="mech-out mech-out-fail">ArgumentOutOfRangeException: The incoming data stream of length 1000000
+exceeds the maximum allowed length 512000. (Parameter 'maxAllowedSize')</pre>
+        }
+
+        <p class="mech-note">
+            The default cap is <strong>512,000 bytes</strong>, and it fails at run time on a call that
+            looks completely ordinary at compile time. The payload here is a megabyte, so dropping the
+            argument is enough to reproduce it. The tail of the message is again host-specific:
+            WebAssembly prints the resource key <code>Arg_ParamName_Name</code>, Blazor Server prints
+            the formatted <code>(Parameter '…')</code>.
+        </p>
+    </section>
+
+    <section class="mech-block">
+        <h2>Why a cap at all</h2>
+        <p>
+            The stream is data the other side chose to send. Without a ceiling you asked for, a
+            JavaScript function that returns a 2 GB buffer would be accepted happily, and the memory
+            would be spent before you noticed. The cap is the only place where a stream call states how
+            much you are prepared to receive — so set it from your expected payload, not from a
+            comfortable default.
+        </p>
+    </section>
+
+    <section class="mech-split">
+        <div class="mech-use">
+            <h2>Use it when</h2>
+            <ul>
+                <li>You need megabytes of binary data across the boundary without the memory spike of
+                    Base64-encoded JSON.</li>
+                <li>The payload arrives as a stream already — a file, a network body, a generated
+                    texture.</li>
+            </ul>
+        </div>
+        <div class="mech-never">
+            <h2>Never when</h2>
+            <ul>
+                <li>The payload comfortably fits a normal call. For small JSON,
+                    <code>InvokeAsync</code> is simpler and fast enough — measure first.</li>
+                <li>You are streaming text you will deserialise anyway. That is two slow steps instead
+                    of one.</li>
+                <li>You only need the bytes and can hold them in memory: a byte-array call avoids
+                    Base64 without the stream ceremony.</li>
+            </ul>
+        </div>
+    </section>
+
+    <h2 class="mech-live-head">The live panels</h2>
+    <CascadingValue Name="MechanismPageOwnsHeading" Value="true">
+        <Demo07Streams />
+    </CascadingValue>
+
+    <MechanismPager Number="7" />
+</div>

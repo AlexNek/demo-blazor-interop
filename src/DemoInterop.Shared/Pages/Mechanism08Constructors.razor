@@ -1,0 +1,101 @@
+@page "/mechanism/8-dotnet-10-additions"
+
+<PageTitle>8. Constructors and properties — JS interop demos</PageTitle>
+
+<div class="mechanism-page">
+    <MechanismNav />
+
+    <header class="mech-head">
+        <p class="mech-kicker">
+            Mechanism 8 of @Mechanisms.All.Count · you are reading this in
+            <span class="host-chip">@RuntimeMode.Name</span> — the same page in
+            <CounterpartLink />
+        </p>
+        <h1>The .NET 10 additions: constructors and properties</h1>
+        <p class="mech-lede">
+            Invoke a constructor, or read and write a property, by name, through the runtime you
+            already use. This deletes the pass-through shims a wrapper used to need.
+        </p>
+        <p class="demo-support">
+            Available in: <strong>@Mechanisms.Availability(8)</strong>
+        </p>
+    </header>
+
+    <section class="mech-block">
+        <h2>Which class of glue this removes</h2>
+        <p>
+            A large interop file is mostly not interop. Look at what a typical wrapper repeats:
+        </p>
+        <pre class="mech-out mech-out-flat">export function createVector3(x, y, z) { return new BABYLON.Vector3(x, y, z); }
+export function createColor3(x, y, z)  { return new BABYLON.Color3(x, y, z);  }
+export function setPosition(position, sprite) { sprite.position = position; }</pre>
+        <p>
+            The first two are constructors and the third is one assignment. On .NET 10 they become
+            <code>InvokeConstructorAsync("BABYLON.Vector3", x, y, z)</code> and
+            <code>SetValueAsync</code> on a reference you already hold. A <strong>dotted name resolves
+            for you</strong>, which is what makes a namespaced global reachable without a shim standing
+            in the middle.
+        </p>
+        <p>
+            Arguments and property values still travel as JSON, exactly like
+            <a href="@Mechanisms.Href(1)">mechanism 1</a>, and the result is an ordinary
+            <code>IJSObjectReference</code>. Each of the three calls has a synchronous form —
+            <code>InvokeConstructor</code>, <code>GetValue</code>, <code>SetValue</code> — on
+            <code>IJSInProcessRuntime</code> and <code>IJSInProcessObjectReference</code>, so the
+            WebAssembly-only rules of <a href="@Mechanisms.Href(3)">mechanism 3</a> apply to those.
+        </p>
+    </section>
+
+    <section class="mech-block">
+        <h2>What the panels print in @RuntimeMode.Name</h2>
+        <p class="mech-out-label">✓ new, through C#</p>
+        <pre class="mech-out">C# ran the constructor directly: x = 3, hypot() = 5. No createPoint wrapper was needed.</pre>
+
+        <p class="mech-out-label">✓ Read and write a property, no function</p>
+        <pre class="mech-out">demoSettings.count = 20, demoSettings.created = 30 — the second one did not exist before this call.</pre>
+
+        <p class="mech-out-label">✗ Misspell the constructor name</p>
+        <pre class="mech-out mech-out-fail">JSException: The value 'vendor.Point2' is not a function.
+Error: The value 'vendor.Point2' is not a function.</pre>
+
+        <p class="mech-note">
+            Recorded on both hosts, identical wording. Two things to notice: assigning to a name that
+            does not exist yet <em>creates</em> it, so the ✓ property panel needs no setter on the
+            JavaScript side at all; and a wrong constructor name reports the same generic
+            "is not a function" as a wrong function name, because underneath, that is the lookup being
+            performed. Nothing checks the string.
+        </p>
+    </section>
+
+    <section class="mech-split">
+        <div class="mech-use">
+            <h2>Use it when</h2>
+            <ul>
+                <li>The existing shim does nothing but pass through to <code>new</code> or to an
+                    assignment.</li>
+                <li>The constructor is reachable by name from the global scope — true of a library
+                    loaded with a script tag.</li>
+            </ul>
+        </div>
+        <div class="mech-never">
+            <h2>Never when</h2>
+            <ul>
+                <li>Construction needs logic, not just arguments. A <code>createEngine</code> that
+                    sizes a canvas, wires the render loop and subscribes to <code>resize</code> is not
+                    a constructor call; splitting it into <code>new</code> plus three property writes
+                    loses the ordering guarantees the function gave you.</li>
+                <li>You support .NET 8 or .NET 9. These APIs are .NET 10 additions.</li>
+                <li>You want the compiler to check what you pass. That is
+                    <a href="@Mechanisms.Href(6)">mechanism 6</a>; this checks nothing but a string
+                    you hope is right.</li>
+            </ul>
+        </div>
+    </section>
+
+    <h2 class="mech-live-head">The live panels</h2>
+    <CascadingValue Name="MechanismPageOwnsHeading" Value="true">
+        <Demo08Constructors />
+    </CascadingValue>
+
+    <MechanismPager Number="8" />
+</div>

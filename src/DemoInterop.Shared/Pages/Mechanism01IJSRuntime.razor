@@ -1,0 +1,84 @@
+@page "/mechanism/1-ijsruntime"
+
+<PageTitle>1. IJSRuntime — JS interop demos</PageTitle>
+
+<div class="mechanism-page">
+    <MechanismNav />
+
+    <header class="mech-head">
+        <p class="mech-kicker">
+            Mechanism 1 of @Mechanisms.All.Count · you are reading this in
+            <span class="host-chip">@RuntimeMode.Name</span> — the same page in
+            <CounterpartLink />
+        </p>
+        <h1>IJSRuntime: the classic string-based call</h1>
+        <p class="mech-lede">
+            The first thing everyone learns: name the function in a string, pass arguments, get a
+            result back. There is nothing to set up and nothing to generate, and the same two lines
+            run on both hosting models.
+        </p>
+        <p class="demo-support">
+            Available in: <strong>@Mechanisms.Availability(1)</strong>
+        </p>
+    </header>
+
+    <section class="mech-block">
+        <h2>What actually crosses the boundary</h2>
+        <p>
+            <code>IJSRuntime</code> resolves the name against the <strong>global scope</strong> of the
+            page. On WebAssembly that global is the browser's own. On Blazor Server the call is
+            serialised into a message, sent over the circuit, executed against the browser's global
+            scope, and the result comes back as another message — which is why every method on this
+            interface is asynchronous and why a server-side call has a network hop in it.
+        </p>
+        <p>
+            Arguments and the return value travel as JSON. A <code>string</code> in C# becomes a JSON
+            string, is parsed into a JavaScript value, and the result is written back out again. The
+            function name itself is only a string, so nothing about a wrong name can be a build error.
+        </p>
+    </section>
+
+    <section class="mech-block">
+        <h2>What the panels print in @RuntimeMode.Name</h2>
+        <p class="mech-out-label">✓ One call into a window global</p>
+        <pre class="mech-out">Hello, Blazor — this string came out of a window global.</pre>
+
+        <p class="mech-out-label">✗ Typo the function name — <em>demoGreeterTwo</em> does not exist</p>
+        <pre class="mech-out mech-out-fail">JSException: The value 'demoGreeterTwo' is not a function.
+Error: The value 'demoGreeterTwo' is not a function.</pre>
+
+        <p class="mech-note">
+            Recorded from this build, and identical on both hosts: the message names the string you
+            passed and says it is not a function. Notice what it does <strong>not</strong> say — the
+            runtime cannot tell you that you meant <em>demoGreeter</em>, and it only knows the name is
+            wrong once the call runs, on the user's machine.
+        </p>
+    </section>
+
+    <section class="mech-split">
+        <div class="mech-use">
+            <h2>Use it when</h2>
+            <ul>
+                <li>You need a single call with no setup, or you are prototyping.</li>
+                <li>The JavaScript really is a global — a library that installed itself on
+                    <code>window</code> before your component existed.</li>
+            </ul>
+        </div>
+        <div class="mech-never">
+            <h2>Never when</h2>
+            <ul>
+                <li>You call the same function more than a few times. The serialisation adds up.</li>
+                <li>You have more than two or three functions. That is a module pretending to be
+                    globals.</li>
+                <li>You want the compiler involved at all. It cannot check a string.</li>
+            </ul>
+        </div>
+    </section>
+
+    <h2 class="mech-live-head">The live panels</h2>
+    <CascadingValue Name="MechanismPageOwnsHeading" Value="true">
+        <Demo01Globals />
+    </CascadingValue>
+
+    <MechanismPager Number="1" />
+</div>

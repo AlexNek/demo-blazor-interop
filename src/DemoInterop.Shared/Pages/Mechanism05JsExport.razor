@@ -1,0 +1,127 @@
+@page "/mechanism/5-jsexport"
+
+<PageTitle>5. [JSExport] — JS interop demos</PageTitle>
+
+<div class="mechanism-page">
+    <MechanismNav />
+
+    <header class="mech-head">
+        <p class="mech-kicker">
+            Mechanism 5 of @Mechanisms.All.Count · you are reading this in
+            <span class="host-chip">@RuntimeMode.Name</span> — the same page in
+            <CounterpartLink />
+        </p>
+        <h1>[JSExport]: exposing a .NET method to JavaScript</h1>
+        <p class="mech-lede">
+            The source generator publishes a static .NET method as a JavaScript function. Arguments
+            arrive as real .NET types instead of JSON, and a wrong signature is a build error rather
+            than a runtime surprise.
+        </p>
+        <p class="demo-support">
+            Available in: <strong>@Mechanisms.Availability(5)</strong>
+        </p>
+    </header>
+
+    <section class="mech-block">
+        <h2>What the attribute asks of your project</h2>
+        <p>
+            The attribute goes on a <strong>static method</strong>, not on a class. The containing
+            type must be a partial class marked <code>[SupportedOSPlatform("browser")]</code>, and the
+            project needs <code>AllowUnsafeBlocks</code>, because the generator emits pointer code.
+        </p>
+        <p>
+            Only the supported marshalling types cross the boundary. This demo first used
+            <code>decimal</code>, because a discount is money, and the build refused it:
+            <code>error SYSLIB1072: The type 'decimal' is not supported by source-generated JavaScript
+            interop.</code> The <code>double</code> version builds, so money still needs manual
+            conversion somewhere.
+        </p>
+        <p>
+            JavaScript reaches the export through the runtime instance, and the path contains both
+            your <strong>assembly name</strong> and the <strong>full type name</strong>:
+            <code>getAssemblyExports("DemoInterop.Shared.dll").DemoInterop.Shared.Interop.Pricing.ApplyDiscount</code>.
+        </p>
+    </section>
+
+    <section class="mech-block">
+        <h2>What the panels print in @RuntimeMode.Name</h2>
+        @if (RuntimeMode.IsWebAssembly)
+        {
+            <p class="mech-out-label">✓ Reach the export through the runtime instance</p>
+            <pre class="mech-out">200 minus 15% = 170</pre>
+
+            <p class="mech-out-label">✗ Reach it through a type name that has changed</p>
+            <pre class="mech-out mech-out-fail">JSException: Cannot read properties of undefined (reading 'ApplyDiscount')
+TypeError: Cannot read properties of undefined (reading 'ApplyDiscount')</pre>
+
+            <p class="mech-note">
+                The ✗ panel changes one word of the path — <em>Pricing</em> becomes
+                <em>PricingRenamed</em> — and nothing on the .NET side can see it. The build stays
+                clean and the browser reports a JavaScript <code>TypeError</code> about a property of
+                <code>undefined</code>. Refactor the assembly name or the namespace and the same
+                silent break happens to your consumers.
+            </p>
+        }
+        else
+        {
+            <p class="mech-out-label">✓ Reach the export through the runtime instance — no button here</p>
+            <pre class="mech-out mech-out-flat">Cannot run here: this API does not exist in Blazor Server.</pre>
+
+            <p class="mech-out-label">✗ Run the same JavaScript on Blazor Server</p>
+            <pre class="mech-out mech-out-fail">JSException: globalThis.getDotnetRuntime is not a function
+TypeError: globalThis.getDotnetRuntime is not a function</pre>
+
+            <p class="mech-note">
+                There is no .NET runtime inside the browser tab on Blazor Server, so the entry point
+                the JavaScript needs does not exist. Note the shape of the failure: a browser
+                <code>TypeError</code>, not a .NET exception — the .NET side is never reached at all.
+                The ✗ panel runs the identical call the ✓ panel would make, so this is what a Server
+                deployment of the same code produces.
+            </p>
+        }
+    </section>
+
+    <section class="mech-block">
+        <h2>Proving the generator ran in a plain net10.0 library</h2>
+        <p>
+            These exports live in the Razor class library, which is not a WebAssembly project. An
+            extended partial method with no implementation still compiles, so a clean build proves
+            nothing. Ask the compiler to show its work:
+        </p>
+        <pre class="mech-out mech-out-flat">dotnet build src/DemoInterop.Shared -t:Rebuild -p:EmitCompilerGeneratedFiles=true</pre>
+        <p class="mech-note">
+            Look for <code>JSExports.g.cs</code> under <code>obj/</code>. <em>-t:Rebuild</em> is not
+            optional: on an incremental build the compiler never re-runs, the generator never fires,
+            and the false conclusion is that the setup is broken.
+        </p>
+    </section>
+
+    <section class="mech-split">
+        <div class="mech-use">
+            <h2>Use it when</h2>
+            <ul>
+                <li>You are in WebAssembly, you control both sides, and you want build-time-checked
+                    types with no JSON serialisation.</li>
+                <li>JavaScript already holds the runtime handle — a library initializer calling into
+                    .NET, for instance.</li>
+            </ul>
+        </div>
+        <div class="mech-never">
+            <h2>Never when</h2>
+            <ul>
+                <li>JavaScript must find the method by a name chosen at runtime. The export surface
+                    is fixed at build time.</li>
+                <li>You want a namespace-independent public JavaScript surface. Coupling consumers to
+                    your internal type names makes later refactors risky.</li>
+                <li>You target anything before .NET 7, where the pattern does not exist.</li>
+            </ul>
+        </div>
+    </section>
+
+    <h2 class="mech-live-head">The live panels</h2>
+    <CascadingValue Name="MechanismPageOwnsHeading" Value="true">
+        <Demo05JsExport />
+    </CascadingValue>
+
+    <MechanismPager Number="5" />
+</div>

@@ -1,0 +1,117 @@
+@page "/mechanism/3-in-process"
+
+<PageTitle>3. IJSInProcessObjectReference — JS interop demos</PageTitle>
+
+<div class="mechanism-page">
+    <MechanismNav />
+
+    <header class="mech-head">
+        <p class="mech-kicker">
+            Mechanism 3 of @Mechanisms.All.Count · you are reading this in
+            <span class="host-chip">@RuntimeMode.Name</span> — the same page in
+            <CounterpartLink />
+        </p>
+        <h1>IJSInProcessObjectReference: synchronous interop</h1>
+        <p class="mech-lede">
+            While .NET runs in the browser it can call JavaScript without awaiting anything: no task,
+            no round trip. Getting the reference is still awaited, because import is a browser
+            operation. Every call after that one is not.
+        </p>
+        <p class="demo-support">
+            Available in: <strong>@Mechanisms.Availability(3)</strong>
+        </p>
+    </header>
+
+    <section class="mech-block">
+        <h2>What "in process" is worth, and what it costs</h2>
+        <p>
+            The page has one thread. In WebAssembly, .NET and JavaScript share it, so a synchronous
+            call is a direct hand-off — no JSON protocol, no scheduler hop. It is also a monopoly:
+            while the call runs, nothing else in the tab can run, including the code that paints the
+            screen.
+        </p>
+        <p>
+            The ✗ panel below measures that instead of claiming it. A <code>requestAnimationFrame</code>
+            loop records the longest gap between two painted frames while a synchronous
+            <code>blockMainThread(1200)</code> busy-waits.
+        </p>
+        @if (RuntimeMode.IsWebAssembly)
+        {
+            <p class="mech-note">
+                The measurement needs a tab that is actually painting. Run it in a hidden or
+                minimised tab and <code>requestAnimationFrame</code> never fires, so the panel reports
+                a gap of <strong>0 ms</strong> next to a call that really did hold the thread for
+                1200 ms. Focus the window before you read the number.
+            </p>
+        }
+    </section>
+
+    <section class="mech-block">
+        <h2>What the panels print in @RuntimeMode.Name</h2>
+        @if (RuntimeMode.IsWebAssembly)
+        {
+            <p class="mech-out-label">✓ Synchronous Invoke, no await</p>
+            <pre class="mech-out">Hello from the ES module — call #1. The counter survived the previous call. — returned by Invoke&lt;string&gt;(), with no await on this call.</pre>
+
+            <p class="mech-out-label">✗ Synchronous call into slow JavaScript</p>
+            <pre class="mech-out mech-out-fail">the synchronous call held the thread for 1200 ms; the longest gap between
+two painted frames was 1298 ms. A page that is not blocked paints every ~16 ms.</pre>
+
+            <p class="mech-note">
+                On this host the ✓ panel works, so the interesting one is the ✗ panel: it is not a
+                mistake in the API, it is the API used against JavaScript that is too slow to be
+                called synchronously. Run the same page in Blazor Server and the second panel is
+                replaced by the failure described below.
+            </p>
+        }
+        else
+        {
+            <p class="mech-out-label">✓ Synchronous Invoke, no await — the panel has no button here</p>
+            <pre class="mech-out mech-out-flat">Cannot run here: this API does not exist in Blazor Server.</pre>
+
+            <p class="mech-out-label">✗ Ask the Server runtime for an in-process reference</p>
+            <pre class="mech-out mech-out-fail">JSException: An exception occurred executing JS interop: Deserialization of
+interface or abstract types is not supported. Type
+'Microsoft.JSInterop.IJSInProcessObjectReference'. Path: $ | LineNumber: 0 |
+BytePositionInLine: 1.. See InnerException for more details.
+  caused by NotSupportedException: Deserialization of interface or abstract
+types is not supported. Type 'Microsoft.JSInterop.IJSInProcessObjectReference'.</pre>
+
+            <p class="mech-note">
+                Read what is <strong>not</strong> in that message: there is no "this platform does not
+                support that" anywhere in it. The runtime never reaches a capability check — it asks
+                the JavaScript side for a value, cannot deserialise the type you declared, and gives
+                you a JSON-shaped complaint instead. The C# is legal and compiles clean on any target,
+                which is exactly why you build and run the Server host rather than trusting the WASM
+                build.
+            </p>
+        }
+    </section>
+
+    <section class="mech-split">
+        <div class="mech-use">
+            <h2>Use it when</h2>
+            <ul>
+                <li>You are in WebAssembly and a tight client-side loop is dominated by async
+                    overhead — measured, not assumed.</li>
+                <li>The JavaScript returns in well under a millisecond and you call it thousands of
+                    times per frame.</li>
+            </ul>
+        </div>
+        <div class="mech-never">
+            <h2>Never when</h2>
+            <ul>
+                <li>You run in Blazor Server. The failure arrives at run time, in the wording above.</li>
+                <li>The JavaScript takes more than a few milliseconds. A synchronous call into a
+                    network fetch is a frozen tab, and the freeze is yours, not the server's.</li>
+            </ul>
+        </div>
+    </section>
+
+    <h2 class="mech-live-head">The live panels</h2>
+    <CascadingValue Name="MechanismPageOwnsHeading" Value="true">
+        <Demo03InProcess />
+    </CascadingValue>
+
+    <MechanismPager Number="3" />
+</div>

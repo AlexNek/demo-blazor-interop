@@ -1,0 +1,38 @@
+@* Walking sideways through the eight dedicated pages. Plain anchors rather than NavLink: the
+   pager never points at the page it is standing on, so there is no active state to show. *@
+<nav class="mech-pager" aria-label="Previous and next mechanism">
+    @if (Mechanisms.Previous(Number) is { } before)
+    {
+        <a class="mech-pager-link" href="@Mechanisms.Href(before)">
+            <span class="mech-pager-where">previous</span>
+            <span class="mech-pager-what">@before.Number. @before.Label</span>
+        </a>
+    }
+    else
+    {
+        <span class="mech-pager-link" aria-hidden="true"></span>
+    }
+
+    <a class="mech-pager-link mech-pager-middle" href="">
+        <span class="mech-pager-where">overview</span>
+        <span class="mech-pager-what">All eight on one page</span>
+    </a>
+
+    @if (Mechanisms.Next(Number) is { } after)
+    {
+        <a class="mech-pager-link mech-pager-next" href="@Mechanisms.Href(after)">
+            <span class="mech-pager-where">next</span>
+            <span class="mech-pager-what">@after.Number. @after.Label</span>
+        </a>
+    }
+    else
+    {
+        <span class="mech-pager-link mech-pager-next" aria-hidden="true"></span>
+    }
+</nav>
+
+@code {
+    /// <summary>Which mechanism the hosting page is about, counting from 1 in catalog order.</summary>
+    [Parameter, EditorRequired]
+    public int Number { get; set; }
+}

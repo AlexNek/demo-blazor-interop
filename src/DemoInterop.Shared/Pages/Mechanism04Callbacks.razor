@@ -1,0 +1,114 @@
+@page "/mechanism/4-dotnet-object-reference"
+
+<PageTitle>4. DotNetObjectReference — JS interop demos</PageTitle>
+
+<div class="mechanism-page">
+    <MechanismNav />
+
+    <header class="mech-head">
+        <p class="mech-kicker">
+            Mechanism 4 of @Mechanisms.All.Count · you are reading this in
+            <span class="host-chip">@RuntimeMode.Name</span> — the same page in
+            <CounterpartLink />
+        </p>
+        <h1>DotNetObjectReference: JavaScript calling back into C#</h1>
+        <p class="mech-lede">
+            The only supported way for a JavaScript event to run a C# method. You create a handle to a
+            C# object, pass it into a JavaScript call, and JavaScript invokes
+            <code>[JSInvokable]</code> methods on it. The handle pins the C# object in memory, so
+            whoever created it has to release it.
+        </p>
+        <p class="demo-support">
+            Available in: <strong>@Mechanisms.Availability(4)</strong>
+        </p>
+    </header>
+
+    <section class="mech-block">
+        <h2>The identifier is the contract, not the method name</h2>
+        <p>
+            <code>[JSInvokable]</code> accepts an optional identifier. When you give it one, that
+            identifier <strong>replaces</strong> the C# method name — it does not add an alias
+            alongside it. This app registers one method as
+            <code>[JSInvokable("Demo.Shared")]</code>, and calling it by its C# name from JavaScript
+            fails, which is the second ✗ panel below.
+        </p>
+        <p>
+            The practical consequence: renaming the C# method is a silent breaking change to
+            JavaScript you cannot compile-check. Search for the identifier, not the method name.
+        </p>
+    </section>
+
+    <section class="mech-block">
+        <h2>What the panels print in @RuntimeMode.Name</h2>
+        <p class="mech-out-label">✓ Call the method by its registered name</p>
+        <pre class="mech-out">the callback ran; C# saw it. HitCount in C# is now 1.</pre>
+
+        <p class="mech-out-label">✗ Give the method a custom identifier, then call its C# name</p>
+        <pre class="mech-out mech-out-fail">JSException: System.ArgumentException: The type 'AnimationCallback' does not
+contain a public invokable method with
+[JSInvokableAttribute("OnAnimationEndWithCustomIdentifier")].</pre>
+
+        <p class="mech-out-label">✗ Dispose the handle in JavaScript, then call it again</p>
+        @if (RuntimeMode.IsWebAssembly)
+        {
+            <pre class="mech-out mech-out-fail">JSException: System.ArgumentException: There is no tracked object with id '5'.
+Perhaps the DotNetObjectReference instance was already disposed.
+Arg_ParamName_Name, dotNetObjectId</pre>
+        }
+        else
+        {
+            <pre class="mech-out mech-out-fail">JSException: System.ArgumentException: There is no tracked object with id '10'.
+Perhaps the DotNetObjectReference instance was already disposed.
+(Parameter 'dotNetObjectId')</pre>
+        }
+
+        <p class="mech-note">
+            Two things to read in that last one. It is an <code>ArgumentException</code>, not an
+            <code>ObjectDisposedException</code>, and it does not name your type — the runtime only
+            knows the id is gone. And the tail of the message is host-specific: WebAssembly prints
+            <code>Arg_ParamName_Name, dotNetObjectId</code>, the resource key, while Blazor Server
+            prints <code>(Parameter 'dotNetObjectId')</code>, the formatted text. Same .NET exception,
+            two renderings, so quote one of them as host-specific.
+        </p>
+    </section>
+
+    <section class="mech-block">
+        <h2>Run these three panels one at a time</h2>
+        <p>
+            The first two panels share one handle, created fresh for each run and disposed when the
+            component goes away. Press two <em>Run it</em> buttons back to back on Blazor Server and
+            the ✓ panel starts failing with the "no tracked object" message above — not because
+            disposal is broken, but because the second click released the handle while the first
+            call's round trip was still in flight. That accident is the mechanism's real hazard,
+            demonstrated without the demo trying to.
+        </p>
+    </section>
+
+    <section class="mech-split">
+        <div class="mech-use">
+            <h2>Use it when</h2>
+            <ul>
+                <li>JavaScript must notify C# — animation end, timer, DOM event — and there is no
+                    other way to get the signal across the boundary.</li>
+                <li>The callback is one-shot and you dispose it the moment it fires, with a
+                    <code>Dispose</code> on the C# side as the safety net.</li>
+            </ul>
+        </div>
+        <div class="mech-never">
+            <h2>Never when</h2>
+            <ul>
+                <li>You create one per frame or per repeated event.</li>
+                <li>C# can poll the state through a module function instead. A callback is the one
+                    interop object whose lifetime is controlled from the side that has no garbage
+                    collector.</li>
+            </ul>
+        </div>
+    </section>
+
+    <h2 class="mech-live-head">The live panels</h2>
+    <CascadingValue Name="MechanismPageOwnsHeading" Value="true">
+        <Demo04Callbacks />
+    </CascadingValue>
+
+    <MechanismPager Number="4" />
+</div>

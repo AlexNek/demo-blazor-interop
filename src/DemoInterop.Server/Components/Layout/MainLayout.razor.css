@@ -18,3 +18,47 @@
         right: 0.75rem;
         top: 0.5rem;
     }
+
+/* Sidebar column, 250 px wide from 641 px up, the same dark gradient the WebAssembly host's
+   .sidebar uses. Written by hand because this host loads no bootstrap: the menu items themselves
+   are styled by the .side-* rules in the shared demo.css, so both hosts' menus are identical. */
+.site {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.site-sidebar {
+    background-image: linear-gradient(180deg, rgb(5, 39, 103) 0%, #3a0647 70%);
+    flex: none;
+    padding-bottom: 0.5rem;
+}
+
+.site-brand {
+    color: #fff;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0;
+    padding: 0.9rem 1rem 0.6rem;
+}
+
+.site-main {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+@media (min-width: 641px) {
+    .site {
+        align-items: stretch;
+        flex-direction: row;
+    }
+
+    .site-sidebar {
+        height: 100vh;
+        overflow-y: auto;
+        position: sticky;
+        top: 0;
+        width: 250px;
+    }
+}

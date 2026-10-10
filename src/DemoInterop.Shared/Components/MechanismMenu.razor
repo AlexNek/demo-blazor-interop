@@ -1,0 +1,22 @@
+@* The persistent site menu: the group heading plus one entry per mechanism page. Both hosts drop
+   this into their own sidebar, so the list of pages cannot exist on one host and be missing on the
+   other — the overview link, the brand and the collapsing behaviour stay with the host, because that
+   is the part each host already dresses its own way.
+
+   Styled by .side-* rules in the shared demo.css, for the dark sidebar gradient both hosts use.
+   Hrefs are relative — see Mechanisms.RoutePrefix. *@
+<div class="side-menu">
+    <p class="side-group">One page per mechanism</p>
+
+    @foreach (var mechanism in Mechanisms.All)
+    {
+        <NavLink class="side-item" href="@Mechanisms.Href(mechanism)" Match="NavLinkMatch.All">
+            <span class="side-num" aria-hidden="true">@mechanism.Number</span>
+            <span class="side-text">@mechanism.Label</span>
+        </NavLink>
+        @if (mechanism.WasmOnly)
+        {
+            <p class="side-note">Blazor WebAssembly only</p>
+        }
+    }
+</div>

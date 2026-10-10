@@ -1,0 +1,11 @@
+@inject NavigationManager Navigation
+
+<a class="host-other" href="@OtherHostUri" target="_blank" rel="noopener noreferrer">@RuntimeMode.OtherName</a>
+
+@code {
+    /// <summary>
+    /// This same page on the other hosting model, so a comparison link lands on the identical
+    /// content instead of on that host's front page.
+    /// </summary>
+    private string OtherHostUri => HostSites.Counterpart(Navigation.Uri, Navigation.BaseUri);
+}

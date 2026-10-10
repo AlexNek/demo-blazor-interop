@@ -29,6 +29,10 @@ app.UseAntiforgery();
 
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
-    .AddInteractiveServerRenderMode();
+    .AddInteractiveServerRenderMode()
+    // The mechanism pages are routable components in the shared Razor class library. Without this,
+    // no endpoint exists for them, so pressing F5 on /mechanism/3-in-process hits the status-code
+    // pages and lands on /not-found even though the router can render it inside a running circuit.
+    .AddAdditionalAssemblies(typeof(DemoInterop.Shared.Components.DemoGallery).Assembly);
 
 app.Run();

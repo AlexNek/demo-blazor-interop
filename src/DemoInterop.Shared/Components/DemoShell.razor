@@ -1,9 +1,12 @@
 <section class="demo" id="@($"demo-{Number}")">
-    <h2>@Number. @Title</h2>
-    <p class="demo-summary">@Summary</p>
-    <p class="demo-support">
-        Available in: <strong>@(WasmOnly ? "Blazor WebAssembly only" : "Blazor Server and Blazor WebAssembly")</strong>
-    </p>
+    @if (!HeadingOwnedByPage)
+    {
+        <h2>@Number. @Title</h2>
+        <p class="demo-summary">@Summary</p>
+        <p class="demo-support">
+            Available in: <strong>@Mechanisms.Availability(WasmOnly)</strong>
+        </p>
+    }
 
     @if (WasmOnly && !RuntimeMode.IsWebAssembly)
     {
@@ -33,4 +36,12 @@
 
     [Parameter, EditorRequired]
     public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// Set by a dedicated mechanism page, which prints the title, the summary and the
+    /// availability line in its own header. The gallery page leaves this unset, so there the
+    /// shell keeps its heading.
+    /// </summary>
+    [CascadingParameter(Name = "MechanismPageOwnsHeading")]
+    public bool HeadingOwnedByPage { get; set; }
 }

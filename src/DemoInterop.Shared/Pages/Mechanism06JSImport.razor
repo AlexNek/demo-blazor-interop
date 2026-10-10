@@ -1,0 +1,123 @@
+@page "/mechanism/6-jsimport"
+
+<PageTitle>6. [JSImport] — JS interop demos</PageTitle>
+
+<div class="mechanism-page">
+    <MechanismNav />
+
+    <header class="mech-head">
+        <p class="mech-kicker">
+            Mechanism 6 of @Mechanisms.All.Count · you are reading this in
+            <span class="host-chip">@RuntimeMode.Name</span> — the same page in
+            <CounterpartLink />
+        </p>
+        <h1>[JSImport]: calling JavaScript through a checked signature</h1>
+        <p class="mech-lede">
+            A static partial method plus an attribute, and the generator emits the call. Types and
+            arity are checked at build time and arguments are marshalled rather than serialised
+            through a JSON protocol.
+        </p>
+        <p class="demo-support">
+            Available in: <strong>@Mechanisms.Availability(6)</strong>
+        </p>
+    </header>
+
+    <section class="mech-block">
+        <h2>What the generator checks — and what it does not</h2>
+        <p>
+            It checks the <strong>.NET signature</strong>: the types you pass and the number of them.
+            The JavaScript side of the binding is still a string, resolved when you call. Two names
+            have to agree and nothing verifies that they do: the module name in the attribute and the
+            name in <code>JSHost.ImportAsync</code>, plus the export name inside the module.
+        </p>
+        <p>
+            This demo builds its import URL from <code>Navigation.BaseUri</code> rather than a rooted
+            path, for the reason <a href="@Mechanisms.Href(2)">mechanism 2</a> describes: under a
+            GitHub Pages project site a URL starting with <code>/</code> loses the repository segment
+            and the module never loads. Measured in a local subdirectory simulation — rooted gives
+            404, base-URI-built gives 200 and the call returns.
+        </p>
+        <p>
+            Do not expect the analyzer to help. The library declares
+            <code>&lt;SupportedPlatform Include="browser" /&gt;</code>, and with
+            <code>AnalysisMode=AllEnabledByDefault</code> the Razor call sites here still produce no
+            CA1416 warnings — verified with the item and without it, identical output. The Server
+            build and the button are the only real check.
+        </p>
+    </section>
+
+    <section class="mech-block">
+        <h2>What the panels print in @RuntimeMode.Name</h2>
+        @if (RuntimeMode.IsWebAssembly)
+        {
+            <p class="mech-out-label">✓ Call a module export the attribute points at</p>
+            <pre class="mech-out">Hello from a module loaded by JSHost.ImportAsync</pre>
+
+            <p class="mech-out-label">✗ Point the attribute at an export that does not exist</p>
+            <pre class="mech-out mech-out-fail">JSException: Error: noSuchExport must be a Function but was undefined</pre>
+
+            <p class="mech-note">
+                The ✗ method compiles with no warning, because the generator was only asked to match a
+                <code>string</code> return against a <code>string</code> return. The JavaScript name
+                is looked up at call time, and by then the typo is a runtime error again — so
+                <code>[JSImport]</code> protects the shape of a call, never the spelling of a
+                function.
+            </p>
+        }
+        else
+        {
+            <p class="mech-out-label">✓ Call a module export the attribute points at — no button here</p>
+            <pre class="mech-out mech-out-flat">Cannot run here: this API does not exist in Blazor Server.</pre>
+
+            <p class="mech-out-label">✗ Run the same C# on Blazor Server</p>
+            <pre class="mech-out mech-out-fail">PlatformNotSupportedException: System.Runtime.InteropServices.JavaScript is
+not supported on this platform.</pre>
+
+            <p class="mech-note">
+                This is the one WebAssembly-only mechanism that fails <em>cleanly</em>: a named
+                platform exception, thrown on the first line of the method, before any JavaScript is
+                involved. Compare it with <a href="@Mechanisms.Href(3)">mechanism 3</a>, where the
+                same category of mistake arrives as a deserialisation complaint about an interface
+                type. The code that produces this compiled for months on a target that cannot run it.
+            </p>
+        }
+    </section>
+
+    <section class="mech-block">
+        <h2>Proving the generator ran at all</h2>
+        <p>
+            An extended partial method with no body compiles whether or not the generator produced
+            anything, so a green build is not evidence. Force the compiler to show its work and look
+            for <code>JSImports.g.cs</code>:
+        </p>
+        <pre class="mech-out mech-out-flat">dotnet build src/DemoInterop.Shared -t:Rebuild -p:EmitCompilerGeneratedFiles=true</pre>
+    </section>
+
+    <section class="mech-split">
+        <div class="mech-use">
+            <h2>Use it when</h2>
+            <ul>
+                <li>You are in WebAssembly, you control both sides, and the call is frequent enough
+                    that marshalling overhead is a measured number.</li>
+                <li>You want a wrong argument type to stop being a runtime exception.</li>
+            </ul>
+        </div>
+        <div class="mech-never">
+            <h2>Never when</h2>
+            <ul>
+                <li>You need a name resolved at runtime. The binding is fixed at build time.</li>
+                <li>The JavaScript API changes under you — a third-party library version. You want one
+                    editable interop file, not a compiled signature.</li>
+                <li>You are choosing this over <code>IJSRuntime</code> with no reason. The string-based
+                    runtime is still the documented default for Blazor.</li>
+            </ul>
+        </div>
+    </section>
+
+    <h2 class="mech-live-head">The live panels</h2>
+    <CascadingValue Name="MechanismPageOwnsHeading" Value="true">
+        <Demo06JSImport />
+    </CascadingValue>
+
+    <MechanismPager Number="6" />
+</div>

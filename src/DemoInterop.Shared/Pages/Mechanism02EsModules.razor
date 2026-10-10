@@ -1,0 +1,97 @@
+@page "/mechanism/2-es-modules"
+
+<PageTitle>2. ES module imports — JS interop demos</PageTitle>
+
+<div class="mechanism-page">
+    <MechanismNav />
+
+    <header class="mech-head">
+        <p class="mech-kicker">
+            Mechanism 2 of @Mechanisms.All.Count · you are reading this in
+            <span class="host-chip">@RuntimeMode.Name</span> — the same page in
+            <CounterpartLink />
+        </p>
+        <h1>ES module imports: the modern replacement</h1>
+        <p class="mech-lede">
+            Import a module once, keep the reference, call its exports through it. Scoped instead of
+            global, composable, and the module keeps private state between calls. This is the
+            production default on both hosting models.
+        </p>
+        <p class="demo-support">
+            Available in: <strong>@Mechanisms.Availability(2)</strong>
+        </p>
+    </header>
+
+    <section class="mech-block">
+        <h2>The boundary you cannot skip</h2>
+        <p>
+            A module's exports are reachable <strong>only</strong> through the module reference. The
+            root <code>IJSRuntime</code> from mechanism 1 still resolves names against the global
+            scope, and an ES module never puts anything there. So importing the module and then
+            calling <code>JS.InvokeAsync&lt;string&gt;("getMessage")</code> on the root runtime fails
+            even though the export exists and the module is loaded.
+        </p>
+        <p>
+            The reference is a tracked object, and it is <em>you</em> who releases it: dispose the
+            module when the component goes away, or the handle outlives the component that needed it.
+            <a href="@Mechanisms.Href(4)">Mechanism 4</a> shows what that looks like
+            from the other side.
+        </p>
+    </section>
+
+    <section class="mech-block">
+        <h2>What the panels print in @RuntimeMode.Name</h2>
+        <p class="mech-out-label">✓ Call an export through the module reference</p>
+        <pre class="mech-out">Hello from the ES module — call #1. The counter survived the previous call.</pre>
+
+        <p class="mech-out-label">✗ Call that same export through the root runtime</p>
+        <pre class="mech-out mech-out-fail">JSException: The value 'getMessage' is not a function.
+Error: The value 'getMessage' is not a function.</pre>
+
+        <p class="mech-note">
+            The <em>call number</em> in the first result is module-private state: it increments across
+            panels and across runs, which is the practical difference from a global. The failure is
+            identical on both hosts, and identical in wording to mechanism 1's typo — the runtime
+            cannot tell you that the function exists, just not where you looked for it.
+        </p>
+    </section>
+
+    <section class="mech-block">
+        <h2>Paths, and the subdirectory that breaks them</h2>
+        <p>
+            The asset path is relative to the app's base URI, so it is written
+            <code>./_content/DemoInterop.Shared/js/module.js</code>. A rooted path
+            (<code>/_content/…</code>) resolves against the <em>site</em> root instead, and under a
+            GitHub Pages project site that silently drops the <code>/demo-blazor-interop/</code>
+            segment: 404. The same trap is what <a href="@Mechanisms.Href(6)">mechanism 6</a> builds
+            its URL from <code>Navigation.BaseUri</code> rather than a literal.
+        </p>
+    </section>
+
+    <section class="mech-split">
+        <div class="mech-use">
+            <h2>Use it when</h2>
+            <ul>
+                <li>You call the same module's functions repeatedly.</li>
+                <li>You want scoped JavaScript that can hold private state between calls.</li>
+                <li>You want one interop surface that behaves the same on Server and WebAssembly.</li>
+            </ul>
+        </div>
+        <div class="mech-never">
+            <h2>Never when</h2>
+            <ul>
+                <li>You want the compiler to check argument types. That is
+                    <a href="@Mechanisms.Href(6)">mechanism 6</a>, and it is WebAssembly-only.</li>
+                <li>You are willing to leak the reference. An undisposed module handle is a
+                    permanent entry in the runtime's tracked-object table.</li>
+            </ul>
+        </div>
+    </section>
+
+    <h2 class="mech-live-head">The live panels</h2>
+    <CascadingValue Name="MechanismPageOwnsHeading" Value="true">
+        <Demo02Modules />
+    </CascadingValue>
+
+    <MechanismPager Number="2" />
+</div>

@@ -1,7 +1,7 @@
 @inherits InteropDemoBase
 @using System.Runtime.InteropServices.JavaScript
 
-<DemoShell Number="6" Title="[JSImport]: calling JavaScript through a checked signature"
+<DemoShell Number="6" Title="[JSImport]: calling JavaScript through a checked signature" WasmOnly="true"
            Summary="A static partial method plus an attribute, and the generator emits the call. Types and arity are checked at build time and arguments are marshalled instead of serialised. WebAssembly only.">
 
     <RunPanel Correct="true" Title="Call a module export the attribute points at" NeedsWebAssembly="true"

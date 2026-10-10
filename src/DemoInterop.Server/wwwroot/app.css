@@ -1,3 +1,9 @@
+/* This host is the --empty template, which ships no bootstrap, so the one reset the sidebar layout
+   depends on is written out here: the WebAssembly host gets it free from bootstrap's reboot. */
+body {
+    margin: 0;
+}
+
 h1:focus {
     outline: none;
 }

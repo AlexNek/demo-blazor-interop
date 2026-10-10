@@ -1,6 +1,6 @@
 @inherits InteropDemoBase
 
-<DemoShell Number="5" Title="[JSExport]: exposing a .NET method to JavaScript"
+<DemoShell Number="5" Title="[JSExport]: exposing a .NET method to JavaScript" WasmOnly="true"
            Summary="The source generator publishes a static .NET method as a JavaScript function. Arguments arrive as real .NET types instead of JSON, and a wrong signature is a build error. WebAssembly only.">
 
     <RunPanel Correct="true" Title="Reach the export through the runtime instance" NeedsWebAssembly="true"

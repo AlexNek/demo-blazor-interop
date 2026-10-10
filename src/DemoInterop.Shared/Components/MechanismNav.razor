@@ -1,0 +1,28 @@
+@* The same nav renders in both hosts, so it lives in the shared library: on the gallery page it
+   offers a way into the dedicated pages, and on a dedicated page it offers a way sideways.
+   Hrefs are relative on purpose — see Mechanisms.RoutePrefix. *@
+<nav class="mech-nav" aria-label="Interop mechanisms">
+    <p class="mech-nav-hint">One mechanism per page, or all eight together:</p>
+
+    <ul class="mech-list">
+        <li>
+            <NavLink class="mech-link mech-link-all" href="" Match="NavLinkMatch.All">
+                <span class="mech-num" aria-hidden="true">·</span>
+                <span class="mech-label">All eight on one page</span>
+            </NavLink>
+        </li>
+        @foreach (var mechanism in Mechanisms.All)
+        {
+            <li>
+                <NavLink class="mech-link" href="@Mechanisms.Href(mechanism)" Match="NavLinkMatch.All">
+                    <span class="mech-num" aria-hidden="true">@mechanism.Number</span>
+                    <span class="mech-label">@mechanism.Label</span>
+                    @if (mechanism.WasmOnly)
+                    {
+                        <span class="mech-flag">WebAssembly only</span>
+                    }
+                </NavLink>
+            </li>
+        }
+    </ul>
+</nav>

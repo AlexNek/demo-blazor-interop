@@ -1,6 +1,22 @@
 ﻿@inherits LayoutComponentBase
+@using DemoInterop.Shared.Components
 
-@Body
+<div class="site">
+    <aside class="site-sidebar">
+        <p class="site-brand">DemoInterop.Server</p>
+        <nav aria-label="Site">
+            <NavLink class="side-item" href="" Match="NavLinkMatch.All">
+                <span class="side-num" aria-hidden="true">⌂</span>
+                <span class="side-text">Home</span>
+            </NavLink>
+            <MechanismMenu />
+        </nav>
+    </aside>
+
+    <main class="site-main">
+        @Body
+    </main>
+</div>
 
 <div id="blazor-error-ui" data-nosnippet>
     An unhandled error has occurred.

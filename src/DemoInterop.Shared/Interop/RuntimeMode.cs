@@ -9,4 +9,7 @@ internal static class RuntimeMode
     public static bool IsWebAssembly => OperatingSystem.IsBrowser();
 
     public static string Name => IsWebAssembly ? "Blazor WebAssembly" : "Blazor Server";
+
+    /// <summary>The model this process is <em>not</em> running in, so a link can name its destination.</summary>
+    public static string OtherName => IsWebAssembly ? "Blazor Server" : "Blazor WebAssembly";
 }

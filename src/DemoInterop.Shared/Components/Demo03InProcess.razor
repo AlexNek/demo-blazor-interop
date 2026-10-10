@@ -1,7 +1,7 @@
 @inherits InteropDemoBase
 @using System.Diagnostics
 
-<DemoShell Number="3" Title="IJSInProcessObjectReference: synchronous interop"
+<DemoShell Number="3" Title="IJSInProcessObjectReference: synchronous interop" WasmOnly="true"
            Summary="While .NET runs in the browser it can call JavaScript synchronously: no task, no await, no round trip. Getting the reference is still awaited, because import is a browser operation. Every call after that one is not.">
 
     <RunPanel Correct="true" Title="Synchronous Invoke, no await" NeedsWebAssembly="true"
