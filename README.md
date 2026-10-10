@@ -1,8 +1,6 @@
 # demo-blazor-interop
 
-**Live demo (WebAssembly host, on GitHub Pages): <https://alexnek.github.io/demo-blazor-interop/>**
-
-**Live demo (Server host, on Azure App Service): <https://demointeropserver2026-dpfsdvbacygvgqey.francecentral-01.azurewebsites.net/>**
+**Live demo:** [Blazor WebAssembly](https://alexnek.github.io/demo-blazor-interop/) · [Blazor Server](https://demointeropserver2026-dpfsdvbacygvgqey.francecentral-01.azurewebsites.net/)
 
 The companion code for a blog post on JavaScript interop in .NET 10 Blazor. It is a teaching
 demo, not a library: eight sections, one per interop mechanism, and each section contains a
