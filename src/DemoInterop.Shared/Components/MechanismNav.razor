@@ -1,21 +1,43 @@
 @* The same nav renders in both hosts, so it lives in the shared library: on the gallery page it
    offers a way into the dedicated pages, and on a dedicated page it offers a way sideways.
+   Grouped by article section — section 1 (IJSRuntime) and section 2 (source generators).
    Hrefs are relative on purpose — see Mechanisms.RoutePrefix. *@
 <nav class="mech-nav" aria-label="Interop mechanisms">
-    <p class="mech-nav-hint">One mechanism per page, or all eight together:</p>
+    <p class="mech-nav-hint">One page per mechanism, grouped by article section:</p>
 
     <ul class="mech-list">
         <li>
             <NavLink class="mech-link mech-link-all" href="" Match="NavLinkMatch.All">
                 <span class="mech-num" aria-hidden="true">·</span>
-                <span class="mech-label">All eight on one page</span>
+                <span class="mech-label">Overview</span>
             </NavLink>
         </li>
-        @foreach (var mechanism in Mechanisms.All)
+    </ul>
+
+    <p class="mech-section-head">1. IJSRuntime</p>
+    <ul class="mech-list">
+        @foreach (var mechanism in Mechanisms.Section1)
         {
             <li>
                 <NavLink class="mech-link" href="@Mechanisms.Href(mechanism)" Match="NavLinkMatch.All">
-                    <span class="mech-num" aria-hidden="true">@mechanism.Number</span>
+                    <span class="mech-num" aria-hidden="true">@mechanism.DisplayNumber</span>
+                    <span class="mech-label">@mechanism.Label</span>
+                    @if (mechanism.WasmOnly)
+                    {
+                        <span class="mech-flag">WebAssembly only</span>
+                    }
+                </NavLink>
+            </li>
+        }
+    </ul>
+
+    <p class="mech-section-head">2. Source generators</p>
+    <ul class="mech-list">
+        @foreach (var mechanism in Mechanisms.Section2)
+        {
+            <li>
+                <NavLink class="mech-link" href="@Mechanisms.Href(mechanism)" Match="NavLinkMatch.All">
+                    <span class="mech-num" aria-hidden="true">@mechanism.DisplayNumber</span>
                     <span class="mech-label">@mechanism.Label</span>
                     @if (mechanism.WasmOnly)
                     {

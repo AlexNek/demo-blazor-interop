@@ -230,6 +230,15 @@
     margin: 0 0 .5rem;
 }
 
+.mech-section-head {
+    color: #6b7280;
+    font-size: .78rem;
+    font-weight: 600;
+    letter-spacing: .03em;
+    margin: .7rem 0 .35rem;
+    text-transform: uppercase;
+}
+
 .mech-list {
     display: flex;
     flex-wrap: wrap;

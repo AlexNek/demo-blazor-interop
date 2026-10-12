@@ -7,7 +7,7 @@
 
     <header class="mech-head">
         <p class="mech-kicker">
-            Mechanism 6 of @Mechanisms.All.Count · you are reading this in
+            2 · [JSExport] and [JSImport] — you are reading this in
             <span class="host-chip">@RuntimeMode.Name</span> — the same page in
             <CounterpartLink />
         </p>
@@ -18,7 +18,7 @@
             through a JSON protocol.
         </p>
         <p class="demo-support">
-            Available in: <strong>@Mechanisms.Availability(6)</strong>
+            Available in: <strong>@Mechanisms.Availability("6-jsimport")</strong>
         </p>
     </header>
 
@@ -32,7 +32,7 @@
         </p>
         <p>
             This demo builds its import URL from <code>Navigation.BaseUri</code> rather than a rooted
-            path, for the reason <a href="@Mechanisms.Href(2)">mechanism 2</a> describes: under a
+            path, for the reason <a href="@Mechanisms.Href("2-es-modules")">mechanism 2</a> describes: under a
             GitHub Pages project site a URL starting with <code>/</code> loses the repository segment
             and the module never loads. Measured in a local subdirectory simulation — rooted gives
             404, base-URI-built gives 200 and the call returns.
@@ -76,7 +76,7 @@ not supported on this platform.</pre>
             <p class="mech-note">
                 This is the one WebAssembly-only mechanism that fails <em>cleanly</em>: a named
                 platform exception, thrown on the first line of the method, before any JavaScript is
-                involved. Compare it with <a href="@Mechanisms.Href(3)">mechanism 3</a>, where the
+                involved. Compare it with <a href="@Mechanisms.Href("3-in-process")">mechanism 3</a>, where the
                 same category of mistake arrives as a deserialisation complaint about an interface
                 type. The code that produces this compiled for months on a target that cannot run it.
             </p>
@@ -105,7 +105,8 @@ not supported on this platform.</pre>
         <div class="mech-never">
             <h2>Never when</h2>
             <ul>
-                <li>You need a name resolved at runtime. The binding is fixed at build time.</li>
+                <li>You run on Blazor Server — throws
+                    <code>PlatformNotSupportedException</code> at the first line.</li>
                 <li>The JavaScript API changes under you — a third-party library version. You want one
                     editable interop file, not a compiled signature.</li>
                 <li>You are choosing this over <code>IJSRuntime</code> with no reason. The string-based
@@ -119,5 +120,5 @@ not supported on this platform.</pre>
         <Demo06JSImport />
     </CascadingValue>
 
-    <MechanismPager Number="6" />
+    <MechanismPager Slug="6-jsimport" />
 </div>

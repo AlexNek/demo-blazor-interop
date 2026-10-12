@@ -7,7 +7,7 @@
 
     <header class="mech-head">
         <p class="mech-kicker">
-            Mechanism 7 of @Mechanisms.All.Count · you are reading this in
+            1.4 · Stream references — you are reading this in
             <span class="host-chip">@RuntimeMode.Name</span> — the same page in
             <CounterpartLink />
         </p>
@@ -17,7 +17,7 @@
             two directions use different types and are not symmetric — that asymmetry is the trap.
         </p>
         <p class="demo-support">
-            Available in: <strong>@Mechanisms.Availability(7)</strong>
+            Available in: <strong>@Mechanisms.Availability("7-streams")</strong>
         </p>
     </header>
 
@@ -97,12 +97,12 @@ exceeds the maximum allowed length 512000. (Parameter 'maxAllowedSize')</pre>
         <div class="mech-never">
             <h2>Never when</h2>
             <ul>
-                <li>The payload comfortably fits a normal call. For small JSON,
-                    <code>InvokeAsync</code> is simpler and fast enough — measure first.</li>
-                <li>You are streaming text you will deserialise anyway. That is two slow steps instead
-                    of one.</li>
-                <li>You only need the bytes and can hold them in memory: a byte-array call avoids
-                    Base64 without the stream ceremony.</li>
+                <li>Your data is small (under a few KB) — JSON serialization is simpler and
+                    faster.</li>
+                <li>You want to inspect or transform the data in C# before sending — stream references
+                    pass through as binary.</li>
+                <li>You forget to set <code>maxAllowedSize</code> — the default 512 KB limit will fail
+                    on larger payloads.</li>
             </ul>
         </div>
     </section>
@@ -112,5 +112,5 @@ exceeds the maximum allowed length 512000. (Parameter 'maxAllowedSize')</pre>
         <Demo07Streams />
     </CascadingValue>
 
-    <MechanismPager Number="7" />
+    <MechanismPager Slug="7-streams" />
 </div>

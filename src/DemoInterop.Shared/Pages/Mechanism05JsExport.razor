@@ -7,7 +7,7 @@
 
     <header class="mech-head">
         <p class="mech-kicker">
-            Mechanism 5 of @Mechanisms.All.Count · you are reading this in
+            2 · [JSExport] and [JSImport] — you are reading this in
             <span class="host-chip">@RuntimeMode.Name</span> — the same page in
             <CounterpartLink />
         </p>
@@ -18,7 +18,7 @@
             than a runtime surprise.
         </p>
         <p class="demo-support">
-            Available in: <strong>@Mechanisms.Availability(5)</strong>
+            Available in: <strong>@Mechanisms.Availability("5-jsexport")</strong>
         </p>
     </header>
 
@@ -109,11 +109,12 @@ TypeError: globalThis.getDotnetRuntime is not a function</pre>
         <div class="mech-never">
             <h2>Never when</h2>
             <ul>
+                <li>You run on Blazor Server — the .NET runtime is not in the browser, so
+                    <code>globalThis.getDotnetRuntime</code> does not exist.</li>
                 <li>JavaScript must find the method by a name chosen at runtime. The export surface
                     is fixed at build time.</li>
                 <li>You want a namespace-independent public JavaScript surface. Coupling consumers to
                     your internal type names makes later refactors risky.</li>
-                <li>You target anything before .NET 7, where the pattern does not exist.</li>
             </ul>
         </div>
     </section>
@@ -123,5 +124,5 @@ TypeError: globalThis.getDotnetRuntime is not a function</pre>
         <Demo05JsExport />
     </CascadingValue>
 
-    <MechanismPager Number="5" />
+    <MechanismPager Slug="5-jsexport" />
 </div>

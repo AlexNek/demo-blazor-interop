@@ -1,0 +1,37 @@
+@inherits InteropDemoBase
+
+<DemoShell Number="2" Title="Migrating legacy globals to an ES module"
+           Summary="Import a wrapper module that re-exports global functions from legacy.js. This is the migration path when you cannot modify the original JavaScript to add export keywords.">
+
+    <RunPanel Correct="true" Title="Call a legacy function through the wrapper module"
+              Note="The wrapper imports legacy.js (which attaches to window), then re-exports the globals as ES module exports. Blazor calls them through the module reference like any other export."
+              Snippet="@WrapperCode" Run="CallThroughWrapperAsync" />
+
+    <RunPanel Correct="false" Title="Call the legacy function directly by name on the root runtime"
+              Note="This works but is the global pattern from mechanism 1 — you lose the scoping benefits of modules. Use the wrapper to keep the ES module boundary."
+              Snippet="@DirectCode" Run="CallDirectAsync" />
+
+</DemoShell>
+
+@code {
+    private const string WrapperCode =
+        @"var wrapper = await JS.InvokeAsync<IJSObjectReference>(""import"",
+        ""./_content/DemoInterop.Shared/js/wrapper.js"");
+var greeting = await wrapper.InvokeAsync<string>(""greet"", ""Blazor"");";
+
+    private const string DirectCode =
+        @"// works, but bypasses the module boundary
+var greeting = await JS.InvokeAsync<string>(""legacyGreet"", ""Blazor"");";
+
+    private async Task<string> CallThroughWrapperAsync()
+    {
+        var wrapper = await Modules.LoadAsync("wrapper.js");
+        return await wrapper.InvokeAsync<string>("greet", "Blazor");
+    }
+
+    private async Task<string> CallDirectAsync()
+    {
+        await Modules.LoadAsync("wrapper.js");
+        return await JS.InvokeAsync<string>("legacyGreet", "Blazor");
+    }
+}

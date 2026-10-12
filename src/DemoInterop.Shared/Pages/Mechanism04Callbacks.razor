@@ -7,7 +7,7 @@
 
     <header class="mech-head">
         <p class="mech-kicker">
-            Mechanism 4 of @Mechanisms.All.Count · you are reading this in
+            1.6 · Callbacks — you are reading this in
             <span class="host-chip">@RuntimeMode.Name</span> — the same page in
             <CounterpartLink />
         </p>
@@ -19,7 +19,7 @@
             whoever created it has to release it.
         </p>
         <p class="demo-support">
-            Available in: <strong>@Mechanisms.Availability(4)</strong>
+            Available in: <strong>@Mechanisms.Availability("4-dotnet-object-reference")</strong>
         </p>
     </header>
 
@@ -101,6 +101,7 @@ Perhaps the DotNetObjectReference instance was already disposed.
                 <li>C# can poll the state through a module function instead. A callback is the one
                     interop object whose lifetime is controlled from the side that has no garbage
                     collector.</li>
+                <li>You forget to dispose it — both sides must own the cleanup, or you leak.</li>
             </ul>
         </div>
     </section>
@@ -110,5 +111,5 @@ Perhaps the DotNetObjectReference instance was already disposed.
         <Demo04Callbacks />
     </CascadingValue>
 
-    <MechanismPager Number="4" />
+    <MechanismPager Slug="4-dotnet-object-reference" />
 </div>

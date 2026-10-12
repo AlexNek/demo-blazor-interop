@@ -7,7 +7,7 @@
 
     <header class="mech-head">
         <p class="mech-kicker">
-            Mechanism 8 of @Mechanisms.All.Count · you are reading this in
+            1.5 · .NET 10 additions — you are reading this in
             <span class="host-chip">@RuntimeMode.Name</span> — the same page in
             <CounterpartLink />
         </p>
@@ -17,7 +17,7 @@
             already use. This deletes the pass-through shims a wrapper used to need.
         </p>
         <p class="demo-support">
-            Available in: <strong>@Mechanisms.Availability(8)</strong>
+            Available in: <strong>@Mechanisms.Availability("8-dotnet-10-additions")</strong>
         </p>
     </header>
 
@@ -38,11 +38,11 @@ export function setPosition(position, sprite) { sprite.position = position; }</p
         </p>
         <p>
             Arguments and property values still travel as JSON, exactly like
-            <a href="@Mechanisms.Href(1)">mechanism 1</a>, and the result is an ordinary
+            <a href="@Mechanisms.Href("1-ijsruntime")">mechanism 1</a>, and the result is an ordinary
             <code>IJSObjectReference</code>. Each of the three calls has a synchronous form —
             <code>InvokeConstructor</code>, <code>GetValue</code>, <code>SetValue</code> — on
             <code>IJSInProcessRuntime</code> and <code>IJSInProcessObjectReference</code>, so the
-            WebAssembly-only rules of <a href="@Mechanisms.Href(3)">mechanism 3</a> apply to those.
+            WebAssembly-only rules of <a href="@Mechanisms.Href("3-in-process")">mechanism 3</a> apply to those.
         </p>
     </section>
 
@@ -86,7 +86,7 @@ Error: The value 'vendor.Point2' is not a function.</pre>
                     loses the ordering guarantees the function gave you.</li>
                 <li>You support .NET 8 or .NET 9. These APIs are .NET 10 additions.</li>
                 <li>You want the compiler to check what you pass. That is
-                    <a href="@Mechanisms.Href(6)">mechanism 6</a>; this checks nothing but a string
+                    <a href="@Mechanisms.Href("6-jsimport")">mechanism 6</a>; this checks nothing but a string
                     you hope is right.</li>
             </ul>
         </div>
@@ -97,5 +97,5 @@ Error: The value 'vendor.Point2' is not a function.</pre>
         <Demo08Constructors />
     </CascadingValue>
 
-    <MechanismPager Number="8" />
+    <MechanismPager Slug="8-dotnet-10-additions" />
 </div>

@@ -7,7 +7,7 @@
 
     <header class="mech-head">
         <p class="mech-kicker">
-            Mechanism 1 of @Mechanisms.All.Count · you are reading this in
+            1.1 · Window globals — you are reading this in
             <span class="host-chip">@RuntimeMode.Name</span> — the same page in
             <CounterpartLink />
         </p>
@@ -18,7 +18,7 @@
             run on both hosting models.
         </p>
         <p class="demo-support">
-            Available in: <strong>@Mechanisms.Availability(1)</strong>
+            Available in: <strong>@Mechanisms.Availability("1-ijsruntime")</strong>
         </p>
     </header>
 
@@ -80,5 +80,5 @@ Error: The value 'demoGreeterTwo' is not a function.</pre>
         <Demo01Globals />
     </CascadingValue>
 
-    <MechanismPager Number="1" />
+    <MechanismPager Slug="1-ijsruntime" />
 </div>

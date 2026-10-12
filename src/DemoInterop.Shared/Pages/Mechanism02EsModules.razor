@@ -7,7 +7,7 @@
 
     <header class="mech-head">
         <p class="mech-kicker">
-            Mechanism 2 of @Mechanisms.All.Count · you are reading this in
+            1.2 · ES modules — you are reading this in
             <span class="host-chip">@RuntimeMode.Name</span> — the same page in
             <CounterpartLink />
         </p>
@@ -18,7 +18,7 @@
             production default on both hosting models.
         </p>
         <p class="demo-support">
-            Available in: <strong>@Mechanisms.Availability(2)</strong>
+            Available in: <strong>@Mechanisms.Availability("2-es-modules")</strong>
         </p>
     </header>
 
@@ -34,7 +34,7 @@
         <p>
             The reference is a tracked object, and it is <em>you</em> who releases it: dispose the
             module when the component goes away, or the handle outlives the component that needed it.
-            <a href="@Mechanisms.Href(4)">Mechanism 4</a> shows what that looks like
+            <a href="@Mechanisms.Href("4-dotnet-object-reference")">Mechanism 4</a> shows what that looks like
             from the other side.
         </p>
     </section>
@@ -63,7 +63,7 @@ Error: The value 'getMessage' is not a function.</pre>
             <code>./_content/DemoInterop.Shared/js/module.js</code>. A rooted path
             (<code>/_content/…</code>) resolves against the <em>site</em> root instead, and under a
             GitHub Pages project site that silently drops the <code>/demo-blazor-interop/</code>
-            segment: 404. The same trap is what <a href="@Mechanisms.Href(6)">mechanism 6</a> builds
+            segment: 404. The same trap is what <a href="@Mechanisms.Href("6-jsimport")">mechanism 6</a> builds
             its URL from <code>Navigation.BaseUri</code> rather than a literal.
         </p>
     </section>
@@ -80,10 +80,9 @@ Error: The value 'getMessage' is not a function.</pre>
         <div class="mech-never">
             <h2>Never when</h2>
             <ul>
-                <li>You want the compiler to check argument types. That is
-                    <a href="@Mechanisms.Href(6)">mechanism 6</a>, and it is WebAssembly-only.</li>
-                <li>You are willing to leak the reference. An undisposed module handle is a
-                    permanent entry in the runtime's tracked-object table.</li>
+                <li>You need synchronous calls — ES modules are async only.</li>
+                <li>You cannot modify the JavaScript to add <code>export</code> keywords — use a
+                    wrapper module or window globals instead.</li>
             </ul>
         </div>
     </section>
@@ -93,5 +92,21 @@ Error: The value 'getMessage' is not a function.</pre>
         <Demo02Modules />
     </CascadingValue>
 
-    <MechanismPager Number="2" />
+    <section class="mech-block">
+        <h2>Migrating legacy globals to a module</h2>
+        <p>
+            If you have existing JavaScript functions attached to <code>window</code> and cannot
+            modify the original file to add <code>export</code> keywords, create a wrapper module
+            that imports the legacy file and re-exports the globals. The demo below loads
+            <code>wrapper.js</code>, which imports <code>legacy.js</code> and re-exports
+            <code>window.legacyGreet</code> as an ES module export.
+        </p>
+    </section>
+
+    <h2 class="mech-live-head">The migration panels</h2>
+    <CascadingValue Name="MechanismPageOwnsHeading" Value="true">
+        <DemoMigration />
+    </CascadingValue>
+
+    <MechanismPager Slug="2-es-modules" />
 </div>
